@@ -78,10 +78,29 @@ WSGI_APPLICATION = 'GA2_KKI_IloveBasdat.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+import os
 import dj_database_url
 
+# DATABASE_URL = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'postgres',
+#         'USER': 'postgres',
+#         'PASSWORD': 'postgres',
+#         'HOST': 'localhost',
+#         'PORT': '5432',
+#     }
+# }
+
 DATABASES = {
-    'default': dj_database_url.config(default="postgresql://postgres.caqaszbvggxckoazcpvc:coklat007@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres")
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'postgres',
+        'USER': 'postgres.gvybwjxjiiyivliwdsxa',
+        'PASSWORD': 'coklat007',
+        'HOST': 'aws-0-ap-southeast-1.pooler.supabase.com',
+        'PORT': '6543',
+    }
 }
 
 # Password validation

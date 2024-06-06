@@ -66,7 +66,7 @@ def authenticate(request):
         messages.error(request, f"Database error: {e}")
         return None, False
     
-def homepage(request):
+def Homepage(request):
     user_phone = request.session.get('user_phone')
     is_authenticated = request.session.get('is_authenticated', False)
     is_worker = request.session.get('is_worker', False)
@@ -189,27 +189,48 @@ def login_user(request):
     if request.method == 'POST':
         phone = request.POST['phone']
         password = request.POST['password']
+        print(f"Login attempt: {phone}")
         
         try:
-            conn = psycopg2.connect(
+            with psycopg2.connect(
                 dbname=settings.DATABASES['default']['NAME'],
                 user=settings.DATABASES['default']['USER'],
                 password=settings.DATABASES['default']['PASSWORD'],
                 host=settings.DATABASES['default']['HOST'],
                 port=settings.DATABASES['default']['PORT']
-            )
-            cursor = conn.cursor()
-            cursor.execute("SELECT * FROM main_user WHERE phone_number = %s", (phone,))
-            user = cursor.fetchone()
-
-            if user and check_password(password, user[2]):  # Assuming password is at index 2
-                request.session['user_phone'] = phone
-                request.session['is_authenticated'] = True
-                cursor.execute("SELECT EXISTS(SELECT 1 FROM main_worker WHERE user_ptr_id = %s)", (user[0],))
-                request.session['is_worker'] = cursor.fetchone()[0]
-                return redirect('homepage')
-            else:
-                messages.error(request, 'Invalid phone number or password.')
+            ) as conn:
+                #for debugging what the hell is wrong with my worker accounts
+                with conn.cursor() as cursor:
+                    # Get full user data including the column names
+                    cursor.execute("""
+                        SELECT column_name FROM information_schema.columns 
+                        WHERE table_name = 'main_user' ORDER BY ordinal_position
+                    """)
+                    columns = [col[0] for col in cursor.fetchall()]
+                    
+                    # Find user by phone number
+                    cursor.execute("SELECT * FROM main_user WHERE phone_number = %s", (phone,))
+                    user = cursor.fetchone()
+                    print(f"User found: {user is not None}")
+                    
+                    if user:
+                        # Find password index in the columns
+                        password_index = columns.index('password')
+                        print(f"Password index: {password_index}")
+                        print(f"Checking password: {check_password(password, user[password_index])}")
+                        
+                        if check_password(password, user[password_index]):
+                            request.session['user_phone'] = phone
+                            request.session['is_authenticated'] = True
+                            cursor.execute("SELECT EXISTS(SELECT 1 FROM main_worker WHERE user_ptr_id = %s)", (user[0],))
+                            request.session['is_worker'] = cursor.fetchone()[0]
+                            print("Authentication successful, redirecting")
+                            return redirect('Homepage')
+                        else:
+                            print("Authentication failed")
+                            messages.error(request, 'Invalid phone number or password.')
+                    else:
+                        messages.error(request, 'Invalid phone number or password.')
         except Exception as e:
             print(f"Login error: {e}")
             messages.error(request, 'An error occurred during login.')
@@ -234,48 +255,56 @@ def register_user(request):
         if form.is_valid():
             data = form.cleaned_data
             hashed_password = make_password(data['password'])
+            conn = None
             try:
-                with psycopg2.connect(
+                conn = psycopg2.connect(
                     dbname=settings.DATABASES['default']['NAME'],
                     user=settings.DATABASES['default']['USER'],
                     password=settings.DATABASES['default']['PASSWORD'],
                     host=settings.DATABASES['default']['HOST'],
                     port=settings.DATABASES['default']['PORT']
-                ) as conn:
-                    with conn.cursor() as cursor:
-                        cursor.execute("""
-                            INSERT INTO main_user (name, password, sex, phone_number, birth_date, address, date_joined, is_active, is_staff, is_superuser, mypay_balance, email, first_name, last_name, username)
-                            VALUES (%s, %s, %s, %s, %s, %s, NOW(), TRUE, FALSE, FALSE, %s, %s, %s, %s, %s)
-                            RETURNING id
-                        """, (
-                            data['name'], 
-                            hashed_password, 
-                            data['sex'], 
-                            data['phone_number'], 
-                            data['birth_date'], 
-                            data['address'], 
-                            0,  # Default value for mypay_balance
-                            data.get('email', ''),  # Default to empty string if not provided
-                            data.get('first_name', ''),  # Default to empty string if not provided
-                            data.get('last_name', ''),  # Default to empty string if not provided
-                            data.get('username', '')  # Default to empty string if not provided
-                        ))
-                        user_id = cursor.fetchone()[0]
-                        conn.commit()
+                )
+                cursor = conn.cursor()
+                
+                # debug freaky error
+                print(f"Attempting to register user with phone: {data['phone_number']}")
+                
+                #fixing my mistakes
+                username = generate_unique_username(cursor)
+                
+                cursor.execute("""
+                    INSERT INTO main_user (name, password, sex, phone_number, birth_date, address, date_joined, is_active, is_staff, is_superuser, mypay_balance, email, first_name, last_name, username)
+                    VALUES (%s, %s, %s, %s, %s, %s, NOW(), TRUE, FALSE, FALSE, %s, %s, %s, %s, %s)
+                    RETURNING id
+                """, (
+                    data['name'], 
+                    hashed_password, 
+                    data['sex'], 
+                    data['phone_number'], 
+                    data['birth_date'], 
+                    data['address'], 
+                    0,
+                    data.get('email', ''),
+                    data.get('first_name', ''),
+                    data.get('last_name', ''),
+                    username
+                ))
+                user_id = cursor.fetchone()[0]
+                conn.commit()
+                print(f"User registered successfully with ID: {user_id}")
+                
                 messages.success(request, 'Registration successful. Please log in.')
                 return redirect('login')
-            except RaiseException as e:
-                conn.rollback()
-                error_message = str(e).split('\n')[1]  # Extract the error message
-                messages.error(request, f'Registration error: {error_message}')
-            except UniqueViolation as e:
-                conn.rollback()
-                error_message = str(e).split('\n')[1]  # Extract the error message
-                messages.error(request, f'Registration error: {error_message}')
             except Exception as e:
-                conn.rollback()
-                print(f"Registration error: {e}")
-                messages.error(request, 'An error occurred during registration.')
+                if conn:
+                    conn.rollback()
+                print(f"Registration error details: {e}")
+                messages.error(request, f'Registration error: {str(e)}')
+            finally:
+                if 'cursor' in locals() and cursor:
+                    cursor.close()
+                if conn:
+                    conn.close()
     else:
         form = UserRegistrationForm()
     return render(request, 'register_user.html', {'form': form})
@@ -294,8 +323,11 @@ def register_worker(request):
         form = WorkerRegistrationForm(request.POST)
         if form.is_valid():
             data = form.cleaned_data
-            hashed_password = make_password(data['password'])
+            password = data['password']
+            hashed_password = make_password(password)
             try:
+                print(f"Generated hash for worker: {hashed_password[:20]}...")
+                
                 with psycopg2.connect(
                     dbname=settings.DATABASES['default']['NAME'],
                     user=settings.DATABASES['default']['USER'],
@@ -304,10 +336,8 @@ def register_worker(request):
                     port=settings.DATABASES['default']['PORT']
                 ) as conn:
                     with conn.cursor() as cursor:
-                        # Generate a unique username
                         username = generate_unique_username(cursor)
-                        
-                        # Insert into main_user
+            
                         cursor.execute("""
                             INSERT INTO main_user (
                                 name, password, sex, phone_number, birth_date, address, 
@@ -323,15 +353,14 @@ def register_worker(request):
                             data['phone_number'], 
                             data['birth_date'], 
                             data['address'], 
-                            0,  # Default value for mypay_balance
-                            data.get('email', ''),  # Default to empty string if not provided
-                            data.get('first_name', ''),  # Default to empty string if not provided
-                            data.get('last_name', ''),  # Default to empty string if not provided
-                            username  # Ensure username is unique
+                            0,  
+                            data.get('email', ''),  
+                            data.get('first_name', ''),  
+                            data.get('last_name', ''), 
+                            username 
                         ))
                         user_id = cursor.fetchone()[0]
                         
-                        # Insert into main_worker
                         cursor.execute("""
                             INSERT INTO main_worker (user_ptr_id, bank_name, account_number, npwp, image_url)
                             VALUES (%s, %s, %s, %s, %s)
@@ -347,11 +376,11 @@ def register_worker(request):
                 return redirect('login')
             except RaiseException as e:
                 conn.rollback()
-                error_message = str(e).split('\n')[1]  # Extract the error message
+                error_message = str(e).split('\n')[1]  
                 messages.error(request, f'Registration error: {error_message}')
             except UniqueViolation as e:
                 conn.rollback()
-                error_message = str(e).split('\n')[1]  # Extract the error message
+                error_message = str(e).split('\n')[1]  
                 messages.error(request, f'Registration error: {error_message}')
             except Exception as e:
                 conn.rollback()
@@ -656,7 +685,7 @@ def profile_view(request, worker_id=None):
                 user_data = cursor.fetchone()
                 if not user_data:
                     messages.error(request, 'User data not found.')
-                    return redirect('homepage')
+                    return redirect('Homepage')
                 
                 context = {
                     'user': {
@@ -727,7 +756,7 @@ def profile_view(request, worker_id=None):
     except Exception as e:
         print(f"Profile update error: {e}")
         messages.error(request, 'An error occurred while updating the profile.')
-        return redirect('homepage')
+        return redirect('Homepage')
     
 def worker_profile(request, worker_id):
     # Get worker_id from the URL and check if the user is a worker

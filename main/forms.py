@@ -32,7 +32,7 @@ class WorkerRegistrationForm(UserRegistrationForm):
     bank_name = forms.ChoiceField(choices=[('GoPay', 'GoPay'), ('OVO', 'OVO'), ('Virtual Account BCA', 'Virtual Account BCA'), ('Virtual Account BNI', 'Virtual Account BNI'), ('Virtual Account Mandiri', 'Virtual Account Mandiri')])
     account_number = forms.CharField(max_length=30)
     npwp = forms.CharField(max_length=20)
-    image_url = forms.URLField(required=False)
+    image_url = forms.URLField(required=False, max_length=200)  
 
     def save(self):
         data = self.cleaned_data

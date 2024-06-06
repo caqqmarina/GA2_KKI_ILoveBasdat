@@ -39,6 +39,9 @@
                             <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{{ field.label }}</label>
                             {% if field.name == "address" %}
                                 {{ field|add_class:"w-3/4 px-3 py-2 border border-gray-300 rounded-lg" }}
+                            {% elif field.name == "image_url" %}
+                                {{ field|add_class:"w-full px-3 py-2 border border-gray-300 rounded-lg" }}
+                                <small class="text-gray-500">Maximum 200 characters</small>
                             {% else %}
                                 {{ field|add_class:"w-full px-3 py-2 border border-gray-300 rounded-lg" }}
                             {% endif %}

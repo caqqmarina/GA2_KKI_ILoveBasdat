@@ -14,3 +14,6 @@ services:
       - ./db_dump.sql:/docker-entrypoint-initdb.d/db_dump.sql
     env_file:
       - .env
+
+volumes:
+  postgres_data:
