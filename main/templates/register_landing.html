@@ -13,12 +13,12 @@
       <!-- Role Selection -->
       <div class="flex justify-around space-x-4">
         <!-- User Role Box -->
-        <a href="#" class="w-1/2 p-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-700 dark:hover:bg-blue-600 dark:focus:ring-blue-800 text-center font-bold">
+        <a href="{% url 'register_user' %}" class="w-1/2 p-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-700 dark:hover:bg-blue-600 dark:focus:ring-blue-800 text-center font-bold">
           User
         </a>
         
         <!-- Worker Role Box -->
-        <a href="#" class="w-1/2 p-4 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-4 focus:ring-gray-300 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800 text-center font-bold">
+        <a href="{% url 'register_worker' %}" class="w-1/2 p-4 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-4 focus:ring-gray-300 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800 text-center font-bold">
           Worker
         </a>
       </div>
