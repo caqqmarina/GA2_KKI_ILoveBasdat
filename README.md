@@ -1,9 +1,9 @@
 # Database KKI 2024/2025 - Group Assignment 2
 ## Group members
-* Bryant Warrick Cai
+* [Bryant Warrick Cai](https://github.com/bryantwarrickcai)
 * Catherine Aurellia
-* Chiara Aqmarina Diankusumo
-* Min Kim
+* [Chiara Aqmarina Diankusumo](https://github.com/caqqmarina)
+* [Min Kim](https://github.com/wuyu0107)
 
 ## Instructions
 ### Step 1
