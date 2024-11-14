@@ -50,6 +50,7 @@ pip install -r requirements.txt
 
 ### Step 5
 Run the following commands:
+
 On Windows:
 ```
 python manage.py makemigrations
@@ -64,6 +65,7 @@ python3 manage.py migrate
 
 ### Step 6
 Run the server using the following command:
+
 On Windows:
 ```
 python manage.py runserver
