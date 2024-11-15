@@ -7,6 +7,8 @@
     {% block title %}{% endblock %}
     <!-- Tailwind CSS via CDN -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    {% load static %}
+<link rel="icon" href="{% static 'favicon.ico' %}" type="image/x-icon">
 </head>
 <body class="bg-gray-100">
     <!-- Navbar (to be included in other templates) -->
@@ -29,5 +31,21 @@
     <main>
         {% block content %}{% endblock %}
     </main>
+    <!-- base.html or your navbar template -->
+    <nav class="navbar">
+        <ul>
+        <li><a href="{% url 'home' %}">Home</a></li>
+        <li><a href="{% url 'profile' %}">Profile</a></li>
+        <!-- Logout Button -->
+        <li><button id="logoutButton">Logout</button></li>
+        </ul>
+    </nav>
+  
+    <script>
+        document.getElementById('logoutButton').addEventListener('click', function() {
+        // Perform logout by calling the logout URL
+        window.location.href = "{% url 'logout' %}";  // Redirect to the Django logout URL
+        });
+    </script>
 </body>
 </html>

@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -118,6 +119,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),  # This tells Django where to look for additional static files
+]
 if DEBUG:
     STATICFILES_DIRS = [
         BASE_DIR / 'static' # refers to /static root project in development mode
@@ -134,3 +138,5 @@ AUTHENTICATION_BACKENDS = [
     'main.backends.PhoneNumberBackend',  # Custom backend that authenticates via phone_number
     'django.contrib.auth.backends.ModelBackend',  # Default Django authentication backend
 ]
+
+LOGOUT_REDIRECT_URL = 'login'

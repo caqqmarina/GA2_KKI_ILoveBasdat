@@ -1,8 +1,8 @@
 # main/views.py
 from django.contrib.auth import authenticate, login
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from .forms import UserRegistrationForm, WorkerRegistrationForm
+from .forms import UserRegistrationForm, WorkerRegistrationForm, UserProfileForm, WorkerProfileForm, UserProfile, WorkerProfile
 from django.contrib.auth.decorators import login_required
 
 # main/views.py
@@ -55,3 +55,25 @@ def register_worker(request):
     else:
         form = WorkerRegistrationForm()
     return render(request, 'register_worker.html', {'form': form})
+
+def user_profile(request):
+    profile = get_object_or_404(UserProfile, user=request.user)
+    if request.method == 'POST':
+        form = UserProfileForm(request.POST, instance=profile)
+        if form.is_valid():
+            form.save()
+            return redirect('user_profile')
+    else:
+        form = UserProfileForm(instance=profile)
+    return render(request, 'user_profile.html', {'form': form, 'profile': profile})
+
+def worker_profile(request):
+    profile = get_object_or_404(WorkerProfile, user=request.user)
+    if request.method == 'POST':
+        form = WorkerProfileForm(request.POST, instance=profile)
+        if form.is_valid():
+            form.save()
+            return redirect('worker_profile')
+    else:
+        form = WorkerProfileForm(instance=profile)
+    return render(request, 'worker_profile.html', {'form': form, 'profile': profile})
