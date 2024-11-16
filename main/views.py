@@ -4,6 +4,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from .forms import UserRegistrationForm, WorkerRegistrationForm, UserProfileForm, WorkerProfileForm, UserProfile, WorkerProfile
 from django.contrib.auth.decorators import login_required
+from .models import Voucher, Promo
 
 # main/views.py
 
@@ -77,3 +78,25 @@ def worker_profile(request):
     else:
         form = WorkerProfileForm(instance=profile)
     return render(request, 'worker_profile.html', {'form': form, 'profile': profile})
+
+def discount_page(request):
+    vouchers = Voucher.objects.all()
+    promos = Promo.objects.all()
+    return render(request, 'main/discount.html', {'vouchers': vouchers, 'promos': promos})
+
+def buy_voucher(request, voucher_id):
+    user = request.user
+    voucher = Voucher.objects.get(id=voucher_id)
+
+    if user.profile.mypay_balance >= voucher.price:
+        # Deduct balance and allocate voucher
+        user.profile.mypay_balance -= voucher.price
+        user.profile.save()
+        return JsonResponse({
+            'success': True,
+            'code': voucher.code,
+            'valid_until': voucher.valid_until.strftime('%Y-%m-%d'),
+            'quota': voucher.user_quota
+        })
+    else:
+        return JsonResponse({'success': False})

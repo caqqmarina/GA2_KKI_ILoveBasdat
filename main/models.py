@@ -39,3 +39,22 @@ class WorkerProfile(models.Model):
     completed_orders_count = models.IntegerField(default=0, editable=False)
     job_categories = models.TextField(blank=True)  # Store job categories as text
     image_url = models.URLField(blank=True)
+
+class Voucher(models.Model):
+    code = models.CharField(max_length=50, unique=True)
+    discount = models.DecimalField(max_digits=5, decimal_places=2)
+    min_transaction = models.DecimalField(max_digits=10, decimal_places=2)
+    validity_days = models.IntegerField()
+    user_quota = models.IntegerField()
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def __str__(self):
+        return self.code
+
+class Promo(models.Model):
+    code = models.CharField(max_length=50, unique=True)
+    offer_end_date = models.DateField()
+
+    def __str__(self):
+        return self.code
+
