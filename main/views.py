@@ -57,3 +57,4 @@ def register_worker(request):
     else:
         form = WorkerRegistrationForm()
     return render(request, 'register_worker.html', {'form': form})
+

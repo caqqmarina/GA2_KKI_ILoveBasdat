@@ -81,7 +81,7 @@ DATABASES = {
         'NAME': 'postgres',
         'USER': 'postgres',
         'PASSWORD': 'postgres',
-        'HOST': 'postgres',  # This should match the service name in docker-compose.yaml
+        'HOST': 'localhost',  # This should match the service name in docker-compose.yaml
         'PORT': '5432',
     }
 }
