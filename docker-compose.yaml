@@ -11,15 +11,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-
-  python:
-    image: python:3.13
-    volumes:
-      - .:/app
-    working_dir: /app
-    ports:
-      - "8000:8000"
-    command: tail -f /dev/null
+      - ./db_dump.sql:/docker-entrypoint-initdb.d/db_dump.sql
 
 volumes:
   postgres_data:
