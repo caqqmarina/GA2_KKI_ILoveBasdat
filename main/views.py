@@ -1,11 +1,15 @@
 # main/views.py
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login
 from django.shortcuts import render, redirect, get_object_or_404
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from .forms import UserRegistrationForm, WorkerRegistrationForm, UserProfileForm, WorkerProfileForm, UserProfile, WorkerProfile
 from django.contrib.auth.decorators import login_required
+from .models import Voucher, Promo
+from django.http import HttpResponseRedirect
+from django.urls import reverse
 from .models import User, Worker
+
 
 def homepage(request):
     user_phone = request.session.get('user_phone')
@@ -37,7 +41,7 @@ def login_view(request):
     return render(request, 'login.html')
 
 def logout_user(request):
-    logout(request)
+    logout_user(request)
     return redirect('landing')
 
 def register_landing(request):
@@ -86,3 +90,32 @@ def worker_profile(request):
     else:
         form = WorkerProfileForm(instance=profile)
     return render(request, 'worker_profile.html', {'form': form, 'profile': profile})
+
+def discount_page(request):
+    vouchers = Voucher.objects.all()
+    promos = Promo.objects.all()
+    return render(request, 'main/discount.html', {'vouchers': vouchers, 'promos': promos})
+
+def buy_voucher(request, voucher_id):
+    if request.method == 'POST':
+        user = request.user
+        try:
+            voucher = Voucher.objects.get(id=voucher_id)
+        except Voucher.DoesNotExist:
+            messages.error(request, 'Voucher not found.')
+            return HttpResponseRedirect(reverse('discount'))
+
+        # Check if user has enough balance
+        if user.profile.mypay_balance >= voucher.price:
+            # Deduct balance
+            user.profile.mypay_balance -= voucher.price
+            user.profile.save()
+
+            messages.success(request, f'You successfully bought the voucher: {voucher.code}.')
+            return HttpResponseRedirect(reverse('discount'))
+        else:
+            messages.error(request, 'Insufficient balance to buy this voucher.')
+            return HttpResponseRedirect(reverse('discount'))
+
+    messages.error(request, 'Invalid request.')
+    return HttpResponseRedirect(reverse('discount'))
