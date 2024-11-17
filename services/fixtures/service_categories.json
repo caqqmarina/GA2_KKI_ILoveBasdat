@@ -1,0 +1,43 @@
+[
+    {
+      "model": "services.servicecategory",
+      "pk": 1,
+      "fields": {
+        "name": "Home Cleaning",
+        "description": "Our professional home cleaning services are designed to transform your living space. From routine cleaning to deep cleaning, we'll meticulously clean every nook and cranny of your home."
+      }
+    },
+    {
+      "model": "services.servicecategory",
+      "pk": 2,
+      "fields": {
+        "name": "Deep Cleaning",
+        "description": "Our deep cleaning services go beyond routine cleaning, providing a thorough and comprehensive clean for your home."
+      }
+    },
+    {
+      "model": "services.servicecategory",
+      "pk": 3,
+      "fields": {
+        "name": "Air Conditioning",
+        "description": "Our air conditioning services ensure optimal performance and clean air quality for your home."
+      }
+    },
+    {
+      "model": "services.servicecategory",
+      "pk": 4,
+      "fields": {
+        "name": "Massage",
+        "description": "Our massage therapists are skilled in various techniques to help you unwind and relieve stress."
+      }
+    },
+    {
+      "model": "services.servicecategory",
+      "pk": 5,
+      "fields": {
+        "name": "Hair Care",
+        "description": "Our hair care services are designed to enhance your natural beauty."
+      }
+    }
+  ]
+  

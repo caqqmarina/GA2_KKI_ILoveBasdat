@@ -1,12 +1,20 @@
 <!-- templates/homepage.html -->
 {% extends 'base.html' %}
-
 {% block title %}{% endblock %}
-
 {% block content %}
 {% include 'navbar1.html' %} 
-<div class="pt-20"> <!-- Add padding to push content below navbar -->
+<div> <!-- Add padding to push content below navbar -->
     <h1 class="text-center text-4xl font-bold mt-10">Welcome to the Homepage</h1>
     <p class="text-center text-gray-600 mt-4">Lorem ipsum dolor sit amet</p>
+    {% if user and user.is_authenticated %}
+        <p class="text-center text-green-600 mt-4">User is authenticated</p>
+        {% if is_worker %}
+            <p class="text-center text-green-600 mt-4">User is a Worker</p>
+        {% else %}
+            <p class="text-center text-green-600 mt-4">User is not a Worker</p>
+        {% endif %}
+    {% else %}
+        <p class="text-center text-red-600 mt-4">User is not authenticated</p>
+    {% endif %}
 </div>
 {% endblock %}

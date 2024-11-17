@@ -1,11 +1,19 @@
 {% load static %}
-<div class="fixed top-0 left-0 w-full z-50 bg-white border-b backdrop-blur-lg bg-opacity-80">
-    <div class="mx-auto max-w-7xl px-6 sm:px-6 lg:px-8">
-        <div class="relative flex h-16 justify-between">
-            <div class="flex flex-1 items-stretch justify-start">
-                <a class="flex flex-shrink-0 items-center" href="#">
-                    <img class="block h-12 w-auto" src="https://www.svgrepo.com/show/501888/donut.svg" alt="Logo">
-                </a>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clean Students Navbar</title>
+    {% load static %}
+    <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-container flex justify-between items-center w-full">
+            <div class="logo">
+                <img src="{% static 'images/cleanstudentslogo.png' %}" alt="CleanStudents Logo" class="logo-img">
             </div>
             <div class="flex-shrink-0 flex px-2 py-3 items-center space-x-8">
                 <!-- Login Link (could be conditionally rendered if the user is not logged in) -->
@@ -16,7 +24,20 @@
                 {% if user.is_authenticated %}
                     <a href="{% url 'logout' %}" class="text-gray-700 hover:text-indigo-700 text-sm font-medium">Logout</a>
                 {% endif %}
+            <div class="nav-links ml-auto">
+                <a href="{% url 'login' %}" class="nav-link">Log In</a>
+                <a href="{% url 'register_landing' %}" class="nav-link">Register</a>
             </div>
         </div>
+    </nav>
+
+    <!-- Content Placeholder -->
+    <div class="content mt-24">
+        <!-- Page content goes here -->
     </div>
+<<<<<<< HEAD
 </div>
+=======
+</body>
+</html>
+>>>>>>> aeb0114d6445589a576ceac4099bea715affe840

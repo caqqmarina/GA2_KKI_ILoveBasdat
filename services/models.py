@@ -5,6 +5,9 @@ class ServiceCategory(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
 
+    def __str__(self):
+        return self.name
+
 class Subcategory(models.Model):
     category = models.ForeignKey(ServiceCategory, related_name='subcategories', on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
@@ -20,12 +23,11 @@ class Testimonial(models.Model):
 
 class ServiceSession(models.Model):
     subcategory = models.ForeignKey(Subcategory, related_name='sessions', on_delete=models.CASCADE)
-    name = models.CharField(max_length=100)
+    session = models.CharField(max_length=100)
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    description = models.TextField()
 
     def __str__(self):
-        return self.name
+        return f"{self.session} - Rp {self.price}"
 
 class Booking(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

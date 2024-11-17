@@ -28,7 +28,7 @@
     {% endif %}
     
     <!-- Main content area -->
-    <main>
+    <body>
         {% block content %}{% endblock %}
     </main>
     <!-- base.html or your navbar template -->
@@ -47,5 +47,6 @@
         window.location.href = "{% url 'logout' %}";  // Redirect to the Django logout URL
         });
     </script>
+    </body>
 </body>
 </html>

@@ -1,0 +1,92 @@
+[
+    {
+        "model": "services.subcategory",
+        "pk": 1,
+        "fields": {
+            "name": "General Cleaning",
+            "description": "General cleaning is a routine cleaning service that maintains a clean and tidy environment. It typically involves tasks like dusting, vacuuming, mopping floors, cleaning bathrooms, and kitchen surfaces.",
+            "category": 1
+        }
+    },
+    {
+        "model": "services.subcategory",
+        "pk": 2,
+        "fields": {
+            "name": "Deep Cleaning",
+            "description": "Deep cleaning is a more intensive cleaning service that goes beyond routine cleaning. It involves a thorough cleaning of all surfaces, including hard-to-reach areas, to remove dirt, grime, and bacteria. Deep cleaning services often include tasks like cleaning behind appliances, scrubbing grout, and polishing fixtures.",
+            "category": 1
+        }
+    },
+    {
+        "model": "services.subcategory",
+        "pk": 3,
+        "fields": {
+            "name": "Specialized Cleaning",
+            "description": "Specialized cleaning refers to cleaning services that require specific expertise or equipment. This can include tasks like carpet cleaning, upholstery cleaning, window cleaning, and post-construction cleaning.",
+            "category": 1
+        }
+    },
+    {
+        "model": "services.subcategory",
+        "pk": 4,
+        "fields": {
+            "name": "Residential Deep Cleaning",
+            "description": "Residential deep cleaning is a deep cleaning service specifically tailored for homes. It involves a thorough cleaning of all areas of the home, including bedrooms, bathrooms, kitchens, living rooms, and hallways.",
+            "category": 2
+        }
+    },
+    {
+        "model": "services.subcategory",
+        "pk": 5,
+        "fields": {
+            "name": "Commercial Deep Cleaning",
+            "description": "Commercial deep cleaning is a deep cleaning service for businesses and commercial spaces. It involves a comprehensive cleaning of offices, retail stores, restaurants, and other commercial establishments.",
+            "category": 2
+        }
+    },
+    {
+        "model": "services.subcategory",
+        "pk": 6,
+        "fields": {
+            "name": "Seasonal Deep Cleaning",
+            "description": "Seasonal deep cleaning is a specialized cleaning service that focuses on cleaning tasks that are typically performed during specific seasons. This can include tasks like spring cleaning, fall cleaning, and winterizing.",
+            "category": 2
+        }
+    },
+    {
+        "model": "services.subcategory",
+        "pk": 7,
+        "fields": {
+            "name": "Installation Services",
+            "description": "Our expert technicians will install your new air conditioning unit efficiently and accurately. We ensure proper installation to optimize performance and energy efficiency.",
+            "category": 3
+        }
+    },
+    {
+        "model": "services.subcategory",
+        "pk": 8,
+        "fields": {
+            "name": "Maintenance Services",
+            "description": "Regular maintenance is crucial for the longevity and optimal performance of your air conditioning system.",
+            "category": 3
+        }
+    },
+    {
+        "model": "services.subcategory",
+        "pk": 9,
+        "fields": {
+            "name": "Aromatherapy",
+            "description": "Aromatherapy is a holistic healing practice that uses essential oils to improve physical and mental health. It can involve massage therapy, inhalation, or topical application of essential oils.",
+            "category": 4
+        }
+    },
+    {
+        "model": "services.subcategory",
+        "pk": 10,
+        "fields": {
+            "name": "Hair Services",
+            "description": "Hair services involve a variety of hair care treatments, including haircuts, styling, coloring, and perming.",
+            "category": 5
+        }
+    }
+]
