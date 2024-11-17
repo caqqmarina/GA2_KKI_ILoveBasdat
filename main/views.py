@@ -5,6 +5,8 @@ from django.contrib import messages
 from .forms import UserRegistrationForm, WorkerRegistrationForm, UserProfileForm, WorkerProfileForm, UserProfile, WorkerProfile
 from django.contrib.auth.decorators import login_required
 from .models import Voucher, Promo
+from django.http import HttpResponseRedirect
+from django.urls import reverse
 
 # main/views.py
 
@@ -85,18 +87,25 @@ def discount_page(request):
     return render(request, 'main/discount.html', {'vouchers': vouchers, 'promos': promos})
 
 def buy_voucher(request, voucher_id):
-    user = request.user
-    voucher = Voucher.objects.get(id=voucher_id)
+    if request.method == 'POST':
+        user = request.user
+        try:
+            voucher = Voucher.objects.get(id=voucher_id)
+        except Voucher.DoesNotExist:
+            messages.error(request, 'Voucher not found.')
+            return HttpResponseRedirect(reverse('discount'))
 
-    if user.profile.mypay_balance >= voucher.price:
-        # Deduct balance and allocate voucher
-        user.profile.mypay_balance -= voucher.price
-        user.profile.save()
-        return JsonResponse({
-            'success': True,
-            'code': voucher.code,
-            'valid_until': voucher.valid_until.strftime('%Y-%m-%d'),
-            'quota': voucher.user_quota
-        })
-    else:
-        return JsonResponse({'success': False})
+        # Check if user has enough balance
+        if user.profile.mypay_balance >= voucher.price:
+            # Deduct balance
+            user.profile.mypay_balance -= voucher.price
+            user.profile.save()
+
+            messages.success(request, f'You successfully bought the voucher: {voucher.code}.')
+            return HttpResponseRedirect(reverse('discount'))
+        else:
+            messages.error(request, 'Insufficient balance to buy this voucher.')
+            return HttpResponseRedirect(reverse('discount'))
+
+    messages.error(request, 'Invalid request.')
+    return HttpResponseRedirect(reverse('discount'))
