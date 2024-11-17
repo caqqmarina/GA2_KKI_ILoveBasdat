@@ -75,6 +75,3 @@ On Linux/Mac:
 ```
 python3 manage.py runserver
 ```
-test123412232
-asaljflaknal'kgnalkg alf
-asnaksfjak;fjanfjk
