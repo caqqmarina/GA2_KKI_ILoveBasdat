@@ -5,12 +5,13 @@ from django.contrib.auth.hashers import make_password
 from .models import User, Worker
 
 class UserRegistrationForm(forms.ModelForm):
-    name = forms.CharField(max_length=150)  # Assuming "name" is a field you want to include
-    password = forms.CharField(widget=forms.PasswordInput)
-
     class Meta:
-        model = User  # Link this form to the User model for name and password fields
-        fields = ['username', 'password']  # Use 'username' for the User model
+        model = User
+        fields = ['name', 'password', 'sex', 'phone_number', 'birth_date', 'address']
+        widgets = {
+            'password': forms.PasswordInput(),
+            'birth_date': forms.DateInput(attrs={'type': 'date'}),
+        }
 
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -18,7 +19,6 @@ class UserRegistrationForm(forms.ModelForm):
             user.username = user.phone_number
             user.save()
         return user
-
 
 class WorkerRegistrationForm(forms.ModelForm):
     bank_name = forms.ChoiceField(choices=[('GoPay', 'GoPay'), ('OVO', 'OVO'), ('Virtual Account BCA', 'Virtual Account BCA'), ('Virtual Account BNI', 'Virtual Account BNI'), ('Virtual Account Mandiri', 'Virtual Account Mandiri')])
@@ -33,12 +33,10 @@ class WorkerRegistrationForm(forms.ModelForm):
             'birth_date': forms.DateInput(attrs={'type': 'date'}),
         }
 
-
 class UserProfileForm(forms.ModelForm):
     class Meta:
         model = UserProfile
         exclude = ['user', 'mypay_balance', 'level']  # Exclude non-editable fields
-
 
 class WorkerProfileForm(forms.ModelForm):
     class Meta:
