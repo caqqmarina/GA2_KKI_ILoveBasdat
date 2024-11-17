@@ -17,15 +17,23 @@
             </div>
             <div class="flex-shrink-0 flex px-2 py-1 items-center space-x-8">
                 {% if not user.is_active %}
-                <!-- Login Link (could be conditionally rendered if the user is not logged in) -->
+                    <!-- Not logged in - show login/signup only -->
                     <a class="text-gray-700 hover:text-indigo-700 text-sm font-medium" href="{% url 'login' %}">Login</a>
                     <a class="text-gray-800 bg-indigo-100 hover:bg-indigo-200 inline-flex items-center justify-center px-3 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm" href="{% url 'register_landing' %}">Sign up</a>
                 {% else %}
-                <!-- Conditionally Render Logout Button (if user is logged in) -->
-                    <a href="{% url 'logout' %}" class="text-gray-700 hover:text-indigo-700 text-sm font-medium">Logout</a>
-                    <a href="{% url 'services:service_bookings' %}" class="text-gray-700 hover:text-indigo-700 text-sm font-medium">Bookings</a>
-                    <a href="{% url 'discount' %}" class="text-gray-700 hover:text-indigo-700 text-sm font-medium">Discount</a>
+                    <!-- Logged in - show profile picture and nav links -->
+                    <div class="flex items-center space-x-4">
+                        {% if user.sex == 'female' %}
+                            <img src="{% static 'images/profilewoman.png' %}" alt="Profile" class="profile-picture">
+                        {% else %}
+                            <img src="{% static 'images/profileman.png' %}" alt="Profile" class="profile-picture">
+                        {% endif %}
+                        <a href="{% url 'logout' %}" class="text-gray-700 hover:text-indigo-700 text-sm font-medium">Logout</a>
+                        <a href="{% url 'services:service_bookings' %}" class="text-gray-700 hover:text-indigo-700 text-sm font-medium">Bookings</a>
+                        <a href="{% url 'discount' %}" class="text-gray-700 hover:text-indigo-700 text-sm font-medium">Discount</a>
+                    </div>
                 {% endif %}
+            </div>
         </div>      
     </nav>
 </body>
