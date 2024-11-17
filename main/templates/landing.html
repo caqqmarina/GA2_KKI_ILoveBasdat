@@ -1,27 +1,36 @@
-<!-- templates/landing.html -->
+
+
+
 {% extends 'base.html' %}
-
-{% block title %}{% endblock %}
-
+{% load static %}
 {% block content %}
-<div class="min-h-screen bg-gradient-to-b from-blue-100 to-white flex flex-col items-center justify-center p-4">
-    <!-- Box with Heading and Buttons -->
-    <div class="bg-white shadow-lg rounded-lg p-8 w-96 text-center">
-        <!-- Text Heading Inside the Box -->
-        <h1 class="text-3xl font-semibold">
-            Welcome to <span class="font-bold text-blue-800">SIJARTA</span> 
-        </h1>
-        <p class="text-lg">By I Love Basdat</p>
-        
-        <!-- Login and Register Buttons -->
-        <div class="space-y-4 mt-6">
-            <a href="{% url 'login' %}" class="block w-full py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Login</a>
-            <a href="{% url 'register_landing' %}" class="block w-full py-2 px-4 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">Register</a>
-        </div>
+{% include 'navbar1.html' %}
 
-        <p class="text-sm text-gray-500 mt-4">
-            New to our platform? Choose 'Register' to create an account.
-        </p>
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-content">
+        <h1>Welcome to <span class="brand">Clean Students!</span></h1>
+        <p class="tagline">Specialized, Efficient, Cool.</p>
+        <p class="hashtag">#CleaningServiceStudents</p>
     </div>
-</div>
+</section>
+
+<!-- Why Choose Us Section -->
+<section class="why-choose-us">
+    <h2>Why Choose Us?</h2>
+    <div class="card-container">
+        <div class="card">
+            <h3>Quick</h3>
+            <p>Our cleaning services take 2 hours on average.</p>
+        </div>
+        <div class="card">
+            <h3>Cheap</h3>
+            <p>Prices range from 60,000 to 100,000 Rupiah/hour.</p>
+        </div>
+        <div class="card">
+            <h3>Experienced</h3>
+            <p>We have experienced workers who know what they’re doing.</p>
+        </div>
+    </div>
+</section>
 {% endblock %}

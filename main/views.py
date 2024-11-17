@@ -1,38 +1,49 @@
+<<<<<<< HEAD
 # main/views.py
 from django.contrib.auth import authenticate, login
 from django.shortcuts import render, redirect, get_object_or_404
+=======
+from django.shortcuts import render, redirect
+>>>>>>> 46bac2ff5f06e4991a046da82be0cc6a639c59dc
 from django.contrib import messages
 from .forms import UserRegistrationForm, WorkerRegistrationForm, UserProfileForm, WorkerProfileForm, UserProfile, WorkerProfile
 from django.contrib.auth.decorators import login_required
+<<<<<<< HEAD
 from .models import Voucher, Promo
 from django.http import HttpResponseRedirect
 from django.urls import reverse
+=======
+from .models import User, Worker
+>>>>>>> 46bac2ff5f06e4991a046da82be0cc6a639c59dc
 
-# main/views.py
-
-@login_required(login_url='login')
 def homepage(request):
-    return render(request, 'homepage.html')
-
+    user_phone = request.session.get('user_phone')
+    is_authenticated = request.session.get('is_authenticated', False)
+    is_worker = request.session.get('is_worker', False)
+    
+    user = User.objects.filter(phone_number=user_phone).first() if user_phone else None
+    return render(request, 'homepage.html', {'user': user, 'is_worker': is_worker})
 
 def landing_page(request):
     return render(request, 'landing.html')
 
 def login_view(request):
     if request.method == 'POST':
-        phone = request.POST['phone']  # Should match input name in `login.html`
-        password = request.POST['password']  # Should match input name in `login.html`
+        phone = request.POST['phone']
+        password = request.POST['password']
         
-        # Authenticate using phone as username
-        user = authenticate(request, username=phone, password=password)
+        user = User.objects.filter(phone_number=phone).first()
+        print("user", user)
         if user is not None:
-            login(request, user)
+            request.session['user_phone'] = user.phone_number
+            request.session['is_authenticated'] = True
+            request.session['is_worker'] = Worker.objects.filter(user_ptr_id=user.id).exists()
+            print("is_worker", request.session['is_worker'])
             return redirect('homepage')
         else:
             messages.error(request, 'Invalid phone number or password.')
     
     return render(request, 'login.html')
-
 
 def register_landing(request):
     return render(request, 'register_landing.html')

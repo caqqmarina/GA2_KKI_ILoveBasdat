@@ -1,6 +1,11 @@
 from django import forms
+<<<<<<< HEAD
 from django.contrib.auth.models import User  # No Worker model here
 from .models import UserProfile, WorkerProfile  # Import your custom models
+=======
+from django.contrib.auth.hashers import make_password
+from .models import User, Worker
+>>>>>>> 46bac2ff5f06e4991a046da82be0cc6a639c59dc
 
 class UserRegistrationForm(forms.ModelForm):
     name = forms.CharField(max_length=150)  # Assuming "name" is a field you want to include
@@ -12,8 +17,8 @@ class UserRegistrationForm(forms.ModelForm):
 
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.set_password(self.cleaned_data['password'])  # Hash the password
         if commit:
+            user.username = user.phone_number
             user.save()
         return user
 

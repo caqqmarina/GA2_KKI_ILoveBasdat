@@ -1,0 +1,27 @@
+[
+    {
+      "model": "services.servicecategory",
+      "pk": 1,
+      "fields": {
+        "name": "Web Development",
+        "description": "All web development-related services, including design and backend development."
+      }
+    },
+    {
+      "model": "services.servicecategory",
+      "pk": 2,
+      "fields": {
+        "name": "Graphic Design",
+        "description": "Services for creating visuals, logos, and digital art."
+      }
+    },
+    {
+      "model": "services.servicecategory",
+      "pk": 3,
+      "fields": {
+        "name": "SEO Optimization",
+        "description": "Services to improve website search engine rankings."
+      }
+    }
+  ]
+  
