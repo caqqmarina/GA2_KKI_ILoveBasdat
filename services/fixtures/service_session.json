@@ -1,0 +1,272 @@
+[
+    {
+        "model": "services.servicesession",
+        "pk": 1,
+        "fields": {
+            "session": "1 hour",
+            "price": 150.00,
+            "subcategory": 1
+        }
+    },
+    {
+        "model": "services.servicesession",
+        "pk": 2,
+        "fields": {
+            "session": "2 hours",
+            "price": 300.00,
+            "subcategory": 1
+        }
+    },
+    {
+        "model": "services.servicesession",
+        "pk": 3,
+        "fields": {
+            "session": "3 hours",
+            "price": 400.00,
+            "subcategory": 1
+        }
+    },
+    {
+        "model": "services.servicesession",
+        "pk": 4,
+        "fields": {
+            "session": "4 hours",
+            "price": 500.00,
+            "subcategory": 1
+        }
+    },
+    {
+        "model": "services.servicesession",
+        "pk": 5,
+        "fields": {
+            "session": "5 hours",
+            "price": 600.00,
+            "subcategory": 1
+        }
+    },
+    {
+        "model": "services.servicesession",
+        "pk": 6,
+        "fields": {
+            "session": "1 hour",
+            "price": 200.00,
+            "subcategory": 2
+        }
+    },
+    {
+        "model": "services.servicesession",
+        "pk": 7,
+        "fields": {
+            "session": "2 hours",
+            "price": 400.00,
+            "subcategory": 2
+        }
+    },
+    {
+        "model": "services.servicesession",
+        "pk": 8,
+        "fields": {
+            "session": "3 hours",
+            "price": 500.00,
+            "subcategory": 2
+        }
+    },
+    {
+        "model": "services.servicesession",
+        "pk": 9,
+        "fields": {
+            "session": "4 hours",
+            "price": 600.00,
+            "subcategory": 2
+        }
+    },
+    {
+        "model": "services.servicesession",
+        "pk": 10,
+        "fields": {
+            "session": "5 hours",
+            "price": 700.00,
+            "subcategory": 2
+        }
+    },
+    {
+        "model": "services.servicesession",
+        "pk": 11,
+        "fields": {
+            "session": "1 hour",
+            "price": 575.00,
+            "subcategory": 3
+        }
+    },
+    {
+        "model": "services.servicesession",
+        "pk": 12,
+        "fields": {
+            "session": "2 hours",
+            "price": 600.00,
+            "subcategory": 3
+        }
+    },
+    {
+        "model": "services.servicesession",
+        "pk": 13,
+        "fields": {
+            "session": "3 hours",
+            "price": 625.00,
+            "subcategory": 3
+        }
+    },
+    {
+        "model": "services.servicesession",
+        "pk": 14,
+        "fields": {
+            "session": "4 hours",
+            "price": 650.00,
+            "subcategory": 3
+        }
+    },
+    {
+        "model": "services.servicesession",
+        "pk": 15,
+        "fields": {
+            "session": "2 hours",
+            "price": 300.00,
+            "subcategory": 4
+        }
+    },
+    {
+        "model": "services.servicesession",
+        "pk": 16,
+        "fields": {
+            "session": "3 hours",
+            "price": 600.00,
+            "subcategory": 4
+        }
+    },
+    {
+        "model": "services.servicesession",
+        "pk": 17,
+        "fields": {
+            "session": "4 hours",
+            "price": 800.00,
+            "subcategory": 4
+        }
+    },
+    {
+        "model": "services.servicesession",
+        "pk": 18,
+        "fields": {
+            "session": "5 hours",
+            "price": 950.00,
+            "subcategory": 4
+        }
+    },
+    {
+        "model": "services.servicesession",
+        "pk": 19,
+        "fields": {
+            "session": "2 hours",
+            "price": 300.00,
+            "subcategory": 5
+        }
+    },
+    {
+        "model": "services.servicesession",
+        "pk": 20,
+        "fields": {
+            "session": "3 hours",
+            "price": 600.00,
+            "subcategory": 5
+        }
+    },
+    {
+        "model": "services.servicesession",
+        "pk": 21,
+        "fields": {
+            "session": "4 hours",
+            "price": 800.00,
+            "subcategory": 5
+        }
+    },
+    {
+        "model": "services.servicesession",
+        "pk": 22,
+        "fields": {
+            "session": "5 hours",
+            "price": 950.00,
+            "subcategory": 5
+        }
+    },
+    {
+        "model": "services.servicesession",
+        "pk": 23,
+        "fields": {
+            "session": "2 hours",
+            "price": 700.00,
+            "subcategory": 6
+        }
+    },
+    {
+        "model": "services.servicesession",
+        "pk": 24,
+        "fields": {
+            "session": "3 hours",
+            "price": 800.00,
+            "subcategory": 6
+        }
+    },
+    {
+        "model": "services.servicesession",
+        "pk": 25,
+        "fields": {
+            "session": "4 hours",
+            "price": 900.00,
+            "subcategory": 6
+        }
+    },
+    {
+        "model": "services.servicesession",
+        "pk": 26,
+        "fields": {
+            "session": "5 hours",
+            "price": 1000.00,
+            "subcategory": 6
+        }
+    },
+    {
+        "model": "services.servicesession",
+        "pk": 27,
+        "fields": {
+            "session": "2 hours",
+            "price": 150.00,
+            "subcategory": 7
+        }
+    },
+    {
+        "model": "services.servicesession",
+        "pk": 28,
+        "fields": {
+            "session": "2 hours",
+            "price": 300.00,
+            "subcategory": 8
+        }
+    },
+    {
+        "model": "services.servicesession",
+        "pk": 29,
+        "fields": {
+            "session": "2 hours",
+            "price": 500.00,
+            "subcategory": 9
+        }
+    },
+    {
+        "model": "services.servicesession",
+        "pk": 30,
+        "fields": {
+            "session": "2 hours",
+            "price": 200.00,
+            "subcategory": 10
+        }
+    }
+]
