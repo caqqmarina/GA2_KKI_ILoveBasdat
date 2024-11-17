@@ -1,20 +1,14 @@
-<<<<<<< HEAD
 # main/views.py
 from django.contrib.auth import authenticate, login
 from django.shortcuts import render, redirect, get_object_or_404
-=======
 from django.shortcuts import render, redirect
->>>>>>> 46bac2ff5f06e4991a046da82be0cc6a639c59dc
 from django.contrib import messages
 from .forms import UserRegistrationForm, WorkerRegistrationForm, UserProfileForm, WorkerProfileForm, UserProfile, WorkerProfile
 from django.contrib.auth.decorators import login_required
-<<<<<<< HEAD
 from .models import Voucher, Promo
 from django.http import HttpResponseRedirect
 from django.urls import reverse
-=======
 from .models import User, Worker
->>>>>>> 46bac2ff5f06e4991a046da82be0cc6a639c59dc
 
 def homepage(request):
     user_phone = request.session.get('user_phone')
