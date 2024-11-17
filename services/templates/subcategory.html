@@ -21,6 +21,7 @@
     <div class="mt-10 border-2 border-black rounded p-4">
         <h2 class="text-xl font-bold mb-4">Service Session Option</h2>
         <div class="space-y-4">
+            
             {% for session in sessions %}
             <div class="flex justify-between items-center border-2 border-black p-2">
                 <div class="flex items-center w-1/3">  
@@ -28,13 +29,14 @@
                     <p> | </p>
                     <p class="flex-1 text-center">${{ session.price }}</p>
                 </div>
+                {% if not user.is_worker %}
                 <button class="px-6 py-2 bg-blue-500 text-white font-bold rounded hover:bg-blue-600 book-service-btn">
                     Book Service
                 </button>
+                {% endif %}
             </div>
             {% endfor %}
         </div>
-
 
         <!-- Modal Form for Booking Services -->
         <div id="bookingModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-100">
@@ -58,8 +60,9 @@
                     <div class="mb-3">
                         <label for="payment_method" class="block font-semibold">Payment Method:</label>
                         <select id="payment_method" name="payment_method" class="border w-full p-2" style="height: 40px;">
-                            <option value="method1">Method 1</option>
-                            <option value="method2">Method 2</option>
+                            {% for value, display in payment_methods.items %}
+                                <option value="{{ value }}">{{ display }}</option>
+                            {% endfor %}
                         </select>
                     </div>
                     <div class="mt-10 flex justify-end space-x-2">
@@ -70,6 +73,7 @@
                 </form>
             </div>
         </div>
+        
     </div>
 
     <!-- Workers -->
