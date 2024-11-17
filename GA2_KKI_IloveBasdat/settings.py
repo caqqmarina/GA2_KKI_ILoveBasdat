@@ -54,6 +54,8 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'GA2_KKI_IloveBasdat.urls'
 
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Use database-backed sessions
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
