@@ -31,28 +31,6 @@
     <body>
         {% block content %}{% endblock %}
     </main>
-    <!-- base.html or your navbar template -->
-    <nav class="navbar">
-        <div>
-        <ul>
-        <li><a href="{% url 'homepage' %}">Home</a></li>
-        {% if user.is_worker %}
-            <li><a href="{% url 'worker_profile' %}">Profile</a></li>
-        {% else %}
-         <li><a href="{% url 'user_profile' %}">Profile</a></li>
-        {% endif %}
-        <!-- Logout Button -->
-        <li><button id="logoutButton">Logout</button></li>
-        </ul>
-        </div>
-    </nav>
-  
-    <script>
-        document.getElementById('logoutButton').addEventListener('click', function() {
-        // Perform logout by calling the logout URL
-        window.location.href = "{% url 'logout' %}";  // Redirect to the Django logout URL
-        });
-    </script>
     </body>
 </body>
 </html>

@@ -1,5 +1,5 @@
 # main/views.py
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect, get_object_or_404
 from django.shortcuts import render, redirect
 from django.contrib import messages
@@ -35,6 +35,10 @@ def login_view(request):
             messages.error(request, 'Invalid phone number or password.')
     
     return render(request, 'login.html')
+
+def logout_user(request):
+    logout(request)
+    return redirect('landing')
 
 def register_landing(request):
     return render(request, 'register_landing.html')
