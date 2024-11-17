@@ -17,3 +17,7 @@ def subcategory(request, subcategory_id=None):
     }
 
     return render(request, 'subcategory.html', context)
+
+def service_bookings(request):
+    if request.method == "POST":
+        return render(request, 'service_bookings.html')
