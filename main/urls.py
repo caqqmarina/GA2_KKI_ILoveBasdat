@@ -17,15 +17,3 @@ urlpatterns = [
     path('worker/profile/', views.worker_profile, name='worker_profile'),
     path('logout/', views.logout_user, name='logout'),
 ]
-
-# urlpatterns = [
-#     path('', views.landing_page, name='landing'),
-#     path('homepage/', views.homepage, name='homepage'),
-#     path('login/', views.login_view, name='login'),
-#     path('register_landing/', views.register_landing, name='register_landing'),
-#     path('register/user/', views.register_user, name='register_user'),
-#     path('register/worker/', views.register_worker, name='register_worker'),
-#     path('user/profile/', views.user_profile, name='user_profile'),
-#     path('worker/profile/', views.worker_profile, name='worker_profile'),
-#     path('logout/', LogoutView.as_view(next_page='landing'), name='logout'),
-# ]

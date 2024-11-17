@@ -3,8 +3,8 @@
         "model": "services.subcategory",
         "pk": 1,
         "fields": {
-            "name": "Front-End Development",
-            "description": "Specialized services for designing and developing the front-end of websites.",
+            "name": "General Cleaning",
+            "description": "General cleaning is a routine cleaning service that maintains a clean and tidy environment. It typically involves tasks like dusting, vacuuming, mopping floors, cleaning bathrooms, and kitchen surfaces.",
             "category": 1
         }
     },
@@ -12,8 +12,8 @@
         "model": "services.subcategory",
         "pk": 2,
         "fields": {
-            "name": "Back-End Development",
-            "description": "Services focusing on the server-side of web applications, databases, and APIs.",
+            "name": "Deep Cleaning",
+            "description": "Deep cleaning is a more intensive cleaning service that goes beyond routine cleaning. It involves a thorough cleaning of all surfaces, including hard-to-reach areas, to remove dirt, grime, and bacteria. Deep cleaning services often include tasks like cleaning behind appliances, scrubbing grout, and polishing fixtures.",
             "category": 1
         }
     },
@@ -21,8 +21,8 @@
         "model": "services.subcategory",
         "pk": 3,
         "fields": {
-            "name": "E-commerce Development",
-            "description": "Building online stores and e-commerce platforms using various tools and technologies.",
+            "name": "Specialized Cleaning",
+            "description": "Specialized cleaning refers to cleaning services that require specific expertise or equipment. This can include tasks like carpet cleaning, upholstery cleaning, window cleaning, and post-construction cleaning.",
             "category": 1
         }
     },
@@ -30,8 +30,8 @@
         "model": "services.subcategory",
         "pk": 4,
         "fields": {
-            "name": "Logo Design",
-            "description": "Designing unique and creative logos for brands and businesses.",
+            "name": "Residential Deep Cleaning",
+            "description": "Residential deep cleaning is a deep cleaning service specifically tailored for homes. It involves a thorough cleaning of all areas of the home, including bedrooms, bathrooms, kitchens, living rooms, and hallways.",
             "category": 2
         }
     },
@@ -39,8 +39,8 @@
         "model": "services.subcategory",
         "pk": 5,
         "fields": {
-            "name": "Brand Identity Design",
-            "description": "Creating consistent and visually appealing brand identities, including color schemes and typography.",
+            "name": "Commercial Deep Cleaning",
+            "description": "Commercial deep cleaning is a deep cleaning service for businesses and commercial spaces. It involves a comprehensive cleaning of offices, retail stores, restaurants, and other commercial establishments.",
             "category": 2
         }
     },
@@ -48,8 +48,8 @@
         "model": "services.subcategory",
         "pk": 6,
         "fields": {
-            "name": "Web Design",
-            "description": "Designing the layout, appearance, and usability of websites.",
+            "name": "Seasonal Deep Cleaning",
+            "description": "Seasonal deep cleaning is a specialized cleaning service that focuses on cleaning tasks that are typically performed during specific seasons. This can include tasks like spring cleaning, fall cleaning, and winterizing.",
             "category": 2
         }
     },
@@ -57,8 +57,8 @@
         "model": "services.subcategory",
         "pk": 7,
         "fields": {
-            "name": "On-Page SEO",
-            "description": "Optimizing individual web pages to improve search engine rankings and user experience.",
+            "name": "Installation Services",
+            "description": "Our expert technicians will install your new air conditioning unit efficiently and accurately. We ensure proper installation to optimize performance and energy efficiency.",
             "category": 3
         }
     },
@@ -66,8 +66,8 @@
         "model": "services.subcategory",
         "pk": 8,
         "fields": {
-            "name": "Technical SEO",
-            "description": "Improving website infrastructure, such as site speed, mobile-friendliness, and indexing for better search rankings.",
+            "name": "Maintenance Services",
+            "description": "Regular maintenance is crucial for the longevity and optimal performance of your air conditioning system.",
             "category": 3
         }
     },
@@ -75,9 +75,18 @@
         "model": "services.subcategory",
         "pk": 9,
         "fields": {
-            "name": "Link Building",
-            "description": "Creating backlinks to a website to improve domain authority and search engine rankings.",
-            "category": 3
+            "name": "Aromatherapy",
+            "description": "Aromatherapy is a holistic healing practice that uses essential oils to improve physical and mental health. It can involve massage therapy, inhalation, or topical application of essential oils.",
+            "category": 4
+        }
+    },
+    {
+        "model": "services.subcategory",
+        "pk": 10,
+        "fields": {
+            "name": "Hair Services",
+            "description": "Hair services involve a variety of hair care treatments, including haircuts, styling, coloring, and perming.",
+            "category": 5
         }
     }
 ]
