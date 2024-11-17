@@ -1,10 +1,100 @@
 {% extends 'base.html' %}
 {% block content %}
 {% include 'navbar1.html' %}
-
-<div>
-    <h1>Service Booking Page</h1>
+<!-- Box Container -->
+<div class="bg-transparent p-8 rounded-lg mb-8">
+    <h2 class="text-lg font-semibold text-indigo-700"></h2>
+    <p class="text-sm text-gray-600"></p>
 </div>
 
+<div class="mt-10 mx-auto max-w-4xl">
+    <div class="flex justify-between items-center border-b-2 pb-2">
+        <h1 class="text-xl font-bold">Service Booking</h1>
+    </div>
+
+    <!-- Filters -->
+    <div class="flex space-x-4 mt-10 mb-6">
+        <!-- Subcategory Dropdown -->
+        <div class="flex items-center">
+            <label for="subcategory" class="mr-2 font-semibold">Subcategory</label>
+            <select id="subcategory" name="subcategory" class="border border-gray-400 rounded px-3 py-2">
+                <option value="">Select Subcategory</option>
+                <!-- Add subcategories dynamically -->
+                <option value="subcategory1">Subcategory 1</option>
+                <option value="subcategory2">Subcategory 2</option>
+            </select>
+        </div>
+
+        <!-- Order Status Dropdown -->
+        <div class="flex items-center">
+            <label for="order_status" class="mr-2 font-semibold">Order Status</label>
+            <select id="order_status" name="order_status" class="border border-gray-400 rounded px-3 py-2">
+                <option value="">Select Status</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+                <option value="pending">Pending</option>
+            </select>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="flex items-center">
+            <input
+                type="text"
+                placeholder="Search"
+                class="border border-gray-400 rounded px-3 py-2 w-full"
+            />
+            <button class="ml-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Search</button>
+        </div>
+    </div>
+
+    <!-- Booking List -->
+    <div class="border border-gray-400 rounded-lg">
+        <table class="table-auto w-full text-left">
+            <thead>
+                <tr class="bg-gray-200">
+                    <th class="px-4 py-2">Subcategory</th>
+                    <th class="px-4 py-2">Service Session</th>
+                    <th class="px-4 py-2">Price</th>
+                    <th class="px-4 py-2">Worker Name</th>
+                    <th class="px-4 py-2">Status</th>
+                    <th class="px-4 py-2">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Example Rows -->
+                <tr class="border-t">
+                    <td class="px-4 py-2">Subcategory 1</td>
+                    <td class="px-4 py-2">Session 1</td>
+                    <td class="px-4 py-2">$100</td>
+                    <td class="px-4 py-2">Worker 1</td>
+                    <td class="px-4 py-2 text-red-500">Cancelled</td>
+                    <td class="px-4 py-2">
+                        <button class="px-3 py-1 bg-gray-500 text-white rounded">Cancelled</button>
+                    </td>
+                </tr>
+                <tr class="border-t">
+                    <td class="px-4 py-2">Subcategory 2</td>
+                    <td class="px-4 py-2">Session 2</td>
+                    <td class="px-4 py-2">$150</td>
+                    <td class="px-4 py-2">Worker 2</td>
+                    <td class="px-4 py-2 text-green-500">Completed</td>
+                    <td class="px-4 py-2">
+                        <button class="px-3 py-1 bg-blue-500 text-white rounded">Create Testimonial</button>
+                    </td>
+                </tr>
+                <tr class="border-t">
+                    <td class="px-4 py-2">Subcategory 3</td>
+                    <td class="px-4 py-2">Session 3</td>
+                    <td class="px-4 py-2">$200</td>
+                    <td class="px-4 py-2">Worker 3</td>
+                    <td class="px-4 py-2 text-gray-500">Pending</td>
+                    <td class="px-4 py-2">
+                        <button class="px-3 py-1 bg-gray-300 text-black rounded">Pending</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
 
 {% endblock content %}

@@ -15,7 +15,7 @@
                 <h1 class="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">Login</h1>
                 
                 <form class="space-y-4 md:space-y-6" method="POST" action="{% url 'login' %}">
-                    
+                    {% csrf_token %} 
                     <div>
                         <label for="phone" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Phone Number</label>
                         <input type="tel" name="phone" id="phone"

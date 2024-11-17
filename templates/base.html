@@ -31,6 +31,13 @@
     <body>
         {% block content %}{% endblock %}
     </main>
+  
+    <script>
+        document.getElementById('logoutButton').addEventListener('click', function() {
+        // Perform logout by calling the logout URL
+        window.location.href = "{% url 'logout' %}";  // Redirect to the Django logout URL
+        });
+    </script>
     </body>
 </body>
 </html>
