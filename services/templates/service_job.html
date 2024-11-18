@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Job</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div>
+        <h1>Available Service Jobs</h1>
+        <form id="filter-form">
+            <label for="category">Service Category:</label>
+            <select id="category" name="category">
+                <option value="">All Categories</option>
+                {% for category in categories %}
+                <option value="{{ category.id }}">{{ category.name }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="subcategory">Service Subcategory:</label>
+            <select id="subcategory" name="subcategory">
+                <option value="">All Subcategories</option>
+            </select>
+
+            <button type="button" id="search-button">Search</button>
+        </form>
+
+        <div id="order-list">
+            <!-- Dynamic order list will be displayed here -->
+        </div>
+    </div>
+
+    <script>
+        // Populate subcategories dynamically based on category selection
+        $('#category').on('change', function() {
+            const categoryId = $(this).val();
+            $('#subcategory').html('<option value="">Loading...</option>');
+            if (categoryId) {
+                $.ajax({
+                    url: `/api/subcategories/?category_id=${categoryId}`,
+                    method: 'GET',
+                    success: function(data) {
+                        $('#subcategory').html('<option value="">All Subcategories</option>');
+                        data.forEach(subcategory => {
+                            $('#subcategory').append(`<option value="${subcategory.id}">${subcategory.name}</option>`);
+                        });
+                    }
+                });
+            } else {
+                $('#subcategory').html('<option value="">All Subcategories</option>');
+            }
+        });
+
+        // Fetch and display orders dynamically
+        $('#search-button').on('click', function() {
+            const category = $('#category').val();
+            const subcategory = $('#subcategory').val();
+
+            $('#order-list').html('<p>Loading orders...</p>');
+            $.ajax({
+                url: `/api/orders/?category=${category}&subcategory=${subcategory}`,
+                method: 'GET',
+                success: function(data) {
+                    let html = '';
+                    if (data.length > 0) {
+                        data.forEach(order => {
+                            html += `
+                                <div class="order-item">
+                                    <p><strong>Subcategory:</strong> ${order.subcategory_name}</p>
+                                    <p><strong>User:</strong> ${order.user_name}</p>
+                                    <p><strong>Session:</strong> ${order.session}</p>
+                                    <p><strong>Total Amount:</strong> ${order.total_amount}</p>
+                                    <button onclick="acceptOrder(${order.id})">Accept Order</button>
+                                </div>
+                            `;
+                        });
+                    } else {
+                        html = '<p>No orders available for the selected filters.</p>';
+                    }
+                    $('#order-list').html(html);
+                }
+            });
+        });
+
+        // Handle order acceptance
+        function acceptOrder(orderId) {
+            $.ajax({
+                url: `/api/orders/${orderId}/accept/`,
+                method: 'POST',
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+                success: function(response) {
+                    alert(response.message);
+                    $('#search-button').click(); // Refresh order list
+                }
+            });
+        }
+    </script>
+</body>
+</html>

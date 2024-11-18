@@ -158,3 +158,18 @@ body {
     font-size: 1rem;
     color: #666;
 }
+
+/* Profile picture hover effect */
+.profile-picture {
+    border-radius: 50%;
+    object-fit: cover;
+    height: 2rem;
+    width: 2rem;
+    transition: transform 0.3s ease; /* Add smooth transition */
+    cursor: pointer; /* Shows hand cursor on hover */
+}
+
+.profile-picture:hover {
+    transform: translateY(-5px); /* Moves image up slightly */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Adds subtle shadow */
+}

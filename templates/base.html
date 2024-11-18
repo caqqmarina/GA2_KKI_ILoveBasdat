@@ -31,15 +31,6 @@
     <body>
         {% block content %}{% endblock %}
     </main>
-    <!-- base.html or your navbar template -->
-    <nav class="navbar">
-        <ul>
-        <li><a href="{% url 'home' %}">Home</a></li>
-        <li><a href="{% url 'profile' %}">Profile</a></li>
-        <!-- Logout Button -->
-        <li><button id="logoutButton">Logout</button></li>
-        </ul>
-    </nav>
   
     <script>
         document.getElementById('logoutButton').addEventListener('click', function() {
