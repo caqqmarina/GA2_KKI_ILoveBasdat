@@ -18,4 +18,7 @@ urlpatterns = [
     path('bookings/', service_bookings, name='service_bookings'),
     path('', service_order_list, name='service_order_list'),
     path('update_status/<int:order_id>/', update_status, name='update_status'),
+    path('jobs/', views.service_order_list, name='service_order_list'),
+    path('jobs/update_status/<int:order_id>/', views.update_status, name='update_status'),
+    path('api/subcategories/<int:category_id>/', views.get_subcategories, name='get_subcategories'),
 ]
