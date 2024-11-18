@@ -50,5 +50,5 @@ class WorkerProfileUpdateForm(forms.ModelForm):
 class TransactionForm(forms.ModelForm):
     class Meta:
         model = Transaction
-        fields = ["amount", "date", "category"]
+        fields = ["amount", "category"]
         
