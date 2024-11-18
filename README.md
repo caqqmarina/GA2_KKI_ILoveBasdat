@@ -74,4 +74,24 @@ python manage.py runserver
 On Linux/Mac:
 ```
 python3 manage.py runserver
+
 ```
+
+### Roles
+
+min
+- subcategory services and service sessions
+- service booking
+- testimonials
+
+bryant
+- mypay
+- mypay transactions
+
+chi
+- homepage
+- discount
+
+Cath
+- profile
+- logout

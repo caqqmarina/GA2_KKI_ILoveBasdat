@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-md mx-auto mt-10">
+    <h2 class="text-lg font-bold">Create Testimonial for {{ subcategory.name }}</h2>
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary mt-2">Submit</button>
+    </form>
+</div>
+{% endblock %}

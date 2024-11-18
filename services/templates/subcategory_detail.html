@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div>
+    <!-- Subcategory Information -->
+    <h1>{{ subcategory.name }}</h1>
+    <p>{{ subcategory.description }}</p>
+
+    <!-- Testimonials Section -->
+    <div>
+        <h2>Testimonials</h2>
+        {% for testimonial in testimonials %}
+        <div class="border p-4 rounded mb-2">
+            <p><strong>{{ testimonial.user.username }}</strong> | {{ testimonial.date }}</p>
+            <p>Rating: {{ testimonial.rating }}</p>
+            <p>{{ testimonial.content }}</p>
+        </div>
+        {% empty %}
+        <p>No testimonials yet. Be the first to write one!</p>
+        {% endfor %}
+    </div>
+
+    <!-- Create Testimonial Button -->
+    {% if user.is_authenticated and user.has_perm('app.add_testimonial') %}
+    <a href="{% url 'create_testimonial' subcategory.id %}" class="btn btn-primary mt-4">
+        Create Testimonial
+    </a>
+    {% endif %}
+</div>
+{% endblock %}

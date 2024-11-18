@@ -9,19 +9,19 @@
 
 <div class="mt-10 mx-auto max-w-4xl">
     <div class="flex justify-between items-center border-b-2 pb-2">
-        <h1 class="text-xl font-bold">Service Booking</h1>
+        <h1 class="text-xl font-bold">Booked Sessions</h1>
     </div>
 
     <!-- Filters -->
-    <div class="flex space-x-4 mt-10 mb-6">
+    <div class="mt-10 flex space-x-4 mb-6">
         <!-- Subcategory Dropdown -->
         <div class="flex items-center">
             <label for="subcategory" class="mr-2 font-semibold">Subcategory</label>
             <select id="subcategory" name="subcategory" class="border border-gray-400 rounded px-3 py-2">
                 <option value="">Select Subcategory</option>
-                <!-- Add subcategories dynamically -->
-                <option value="subcategory1">Subcategory 1</option>
-                <option value="subcategory2">Subcategory 2</option>
+                {% for subcategory in unique_subcategories %}
+                    <option value="subcategory1">{{ subcategory.name }}</option>
+                {% endfor %}
             </select>
         </div>
 
@@ -30,9 +30,9 @@
             <label for="order_status" class="mr-2 font-semibold">Order Status</label>
             <select id="order_status" name="order_status" class="border border-gray-400 rounded px-3 py-2">
                 <option value="">Select Status</option>
-                <option value="completed">Completed</option>
-                <option value="cancelled">Cancelled</option>
-                <option value="pending">Pending</option>
+                <option value="WP">Waiting for Payment</option>
+                <option value="SNW">Searching for Nearest Workers</option>
+                <option value="OC">Order Completed</option>
             </select>
         </div>
 
@@ -47,8 +47,8 @@
         </div>
     </div>
 
-    <!-- Booking List -->
-    <div class="border border-gray-400 rounded-lg">
+    <!-- Booked Sessions List -->
+    <div class="border border-gray-400 rounded-lg mt-6">
         <table class="table-auto w-full text-left">
             <thead>
                 <tr class="bg-gray-200">
@@ -61,40 +61,78 @@
                 </tr>
             </thead>
             <tbody>
-                <!-- Example Rows -->
+                {% for session in booked_sessions %}
                 <tr class="border-t">
-                    <td class="px-4 py-2">Subcategory 1</td>
-                    <td class="px-4 py-2">Session 1</td>
-                    <td class="px-4 py-2">$100</td>
-                    <td class="px-4 py-2">Worker 1</td>
-                    <td class="px-4 py-2 text-red-500">Cancelled</td>
+                    <td class="px-4 py-2">{{ session.subcategory.name }}</td>
+                    <td class="px-4 py-2">{{ session.session }}</td>
+                    <td class="px-4 py-2">${{ session.price }}</td>
+                    <!-- Temporary data for Worker Name, Status, and Action -->
+                    <td class="px-4 py-2">John Doe</td>  <!-- Temporary worker name -->
+                    <td class="px-4 py-2">Completed</td>
                     <td class="px-4 py-2">
-                        <button class="px-3 py-1 bg-gray-500 text-white rounded">Cancelled</button>
+                        <button class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600" onclick="openModal()">Create Testimonial</button>
                     </td>
                 </tr>
+                {% empty %}
                 <tr class="border-t">
-                    <td class="px-4 py-2">Subcategory 2</td>
-                    <td class="px-4 py-2">Session 2</td>
-                    <td class="px-4 py-2">$150</td>
-                    <td class="px-4 py-2">Worker 2</td>
-                    <td class="px-4 py-2 text-green-500">Completed</td>
-                    <td class="px-4 py-2">
-                        <button class="px-3 py-1 bg-blue-500 text-white rounded">Create Testimonial</button>
-                    </td>
+                    <td colspan="6" class="px-4 py-2 text-center">No sessions booked yet.</td>
                 </tr>
-                <tr class="border-t">
-                    <td class="px-4 py-2">Subcategory 3</td>
-                    <td class="px-4 py-2">Session 3</td>
-                    <td class="px-4 py-2">$200</td>
-                    <td class="px-4 py-2">Worker 3</td>
-                    <td class="px-4 py-2 text-gray-500">Pending</td>
-                    <td class="px-4 py-2">
-                        <button class="px-3 py-1 bg-gray-300 text-black rounded">Pending</button>
-                    </td>
-                </tr>
+                {% endfor %}
             </tbody>
         </table>
     </div>
+
+    <!-- Modal for Testimonial Form -->
+    <div id="testimonialModal" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center hidden">
+        <div class="bg-white p-6 rounded-lg w-96">
+            <h2 class="text-xl font-bold mb-4">Create Testimonial</h2>
+            <form>
+                <div class="mb-4">
+                    <label for="rating" class="block text-sm font-semibold">Rating</label>
+                    <select id="rating" name="rating" class="border border-gray-400 rounded px-3 py-2 w-full" required>
+                        <option value="" disabled selected>Select Rating</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="comment" class="block text-sm font-semibold">Comment</label>
+                    <textarea id="comment" name="comment" class="border border-gray-400 rounded px-3 py-2 w-full" rows="4" placeholder="Write your feedback..." required></textarea>
+                </div>
+                <div class="flex justify-end">
+                    <button type="button" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" onclick="submitTestimonial()">Submit</button>
+                    <button type="button" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 ml-2" onclick="closeModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
-{% endblock content %}
+<script>
+    // Open the modal
+    function openModal() {
+        document.getElementById('testimonialModal').classList.remove('hidden');
+    }
+
+    // Close the modal
+    function closeModal() {
+        document.getElementById('testimonialModal').classList.add('hidden');
+    }
+
+    // Function to submit the testimonial (you can update this based on your backend)
+    function submitTestimonial() {
+        // Here you can add your form submission logic
+        alert("Testimonial submitted!");
+        closeModal();
+    }
+</script>
+{% endblock %}
+

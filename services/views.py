@@ -1,6 +1,8 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from services.models import Subcategory, Worker, Testimonial, ServiceSession, ServiceCategory
 from services.forms import SubcategoryForm, CategoryForm
+from django.contrib.auth.decorators import login_required
+from .forms import TestimonialForm
 from django.contrib import messages
 from .models import User, Worker
 
@@ -34,6 +36,15 @@ def subcategory(request, subcategory_id=None):
     sessions = subcategory.sessions.all()
     payment_methods = dict(Worker._meta.get_field('bank_name').choices)
 
+    # Handle booking (store the booked session in the session)
+    if request.method == 'POST' and 'book_service' in request.POST:
+        session_id = request.POST.get('session_id')
+        if session_id:
+            booked_sessions = request.session.get('booked_sessions', [])
+            if session_id not in booked_sessions:
+                booked_sessions.append(session_id)
+            request.session['booked_sessions'] = booked_sessions
+
     context = {
         'subcategory': subcategory,
         'category': subcategory.category,  # This includes the category info
@@ -45,16 +56,63 @@ def subcategory(request, subcategory_id=None):
 
     return render(request, 'subcategory.html', context)
 
+@login_required
+def create_testimonial(request, subcategory_id):
+    subcategory = Subcategory.objects.get(id=subcategory_id)
+    if request.method == 'POST':
+        form = TestimonialForm(request.POST)
+        if form.is_valid():
+            testimonial = form.save(commit=False)
+            testimonial.user = request.user
+            testimonial.subcategory = subcategory
+            testimonial.save()
+            return redirect('subcategory_detail', subcategory_id=subcategory.id)  # Redirect to subcategory detail page
+    else:
+        form = TestimonialForm()
+    return render(request, 'create_testimonial.html', {'form': form, 'subcategory': subcategory})
+
+def testimonials(request, subcategory_id):
+    subcategory = Subcategory.objects.get(id=subcategory_id)
+    testimonials = Testimonial.objects.filter(subcategory=subcategory).order_by('-date')
+    return render(request, 'subcategory_detail.html', {'subcategory': subcategory, 'testimonials': testimonials})
 
 def service_bookings(request):
     user, is_worker = authenticate(request)
 
-    if not user:  # If the user is not authenticated or doesn't exist, redirect to login
+    if not user:  # Redirect to login if user is not authenticated
         return redirect('login')
 
-    if request.method == "POST":
-        # Handle POST request and render the service booking form or page
-        return render(request, 'service_booking.html', {'user': user, 'is_worker': is_worker})
+    # Fetch available sessions from the database (assuming `Session` model)
+    sessions = ServiceSession.objects.all()
 
-    # If GET request, just render the service booking page
-    return render(request, 'service_booking.html', {'user': user, 'is_worker': is_worker})
+    if request.method == "POST":
+        session_id = request.POST.get('session_id')
+        if not session_id:
+            messages.error(request, "No session selected.")
+            return redirect('services:subcategory', subcategory_id=request.session.get('subcategory_id'))
+
+        # Store the session in a temporary list or database
+        if 'booked_sessions' not in request.session:
+            request.session['booked_sessions'] = []
+
+        # Avoid duplicating the session
+        if session_id not in request.session['booked_sessions']:
+            request.session['booked_sessions'].append(session_id)
+            request.session.modified = True
+
+        # Redirect to service bookings page
+        return redirect('services:service_bookings')
+
+    # Retrieve booked sessions
+    booked_session_ids = request.session.get('booked_sessions', [])
+    booked_sessions = ServiceSession.objects.filter(id__in=booked_session_ids)
+    unique_subcategories = {session.subcategory for session in booked_sessions}
+
+    context = {
+        'user': user,
+        'is_worker': is_worker,
+        'booked_sessions': booked_sessions,
+        'unique_subcategories': unique_subcategories,
+    }
+        
+    return render(request, 'service_booking.html', context)
