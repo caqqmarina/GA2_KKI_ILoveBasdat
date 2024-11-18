@@ -66,15 +66,73 @@
                     <td class="px-4 py-2">{{ session.subcategory.name }}</td>
                     <td class="px-4 py-2">{{ session.session }}</td>
                     <td class="px-4 py-2">${{ session.price }}</td>
+                    <!-- Temporary data for Worker Name, Status, and Action -->
+                    <td class="px-4 py-2">John Doe</td>  <!-- Temporary worker name -->
+                    <td class="px-4 py-2">Completed</td>
+                    <td class="px-4 py-2">
+                        <button class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600" onclick="openModal()">Create Testimonial</button>
+                    </td>
                 </tr>
                 {% empty %}
                 <tr class="border-t">
-                    <td colspan="3" class="px-4 py-2 text-center">No sessions booked yet.</td>
+                    <td colspan="6" class="px-4 py-2 text-center">No sessions booked yet.</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+
+    <!-- Modal for Testimonial Form -->
+    <div id="testimonialModal" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center hidden">
+        <div class="bg-white p-6 rounded-lg w-96">
+            <h2 class="text-xl font-bold mb-4">Create Testimonial</h2>
+            <form>
+                <div class="mb-4">
+                    <label for="rating" class="block text-sm font-semibold">Rating</label>
+                    <select id="rating" name="rating" class="border border-gray-400 rounded px-3 py-2 w-full" required>
+                        <option value="" disabled selected>Select Rating</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="comment" class="block text-sm font-semibold">Comment</label>
+                    <textarea id="comment" name="comment" class="border border-gray-400 rounded px-3 py-2 w-full" rows="4" placeholder="Write your feedback..." required></textarea>
+                </div>
+                <div class="flex justify-end">
+                    <button type="button" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" onclick="submitTestimonial()">Submit</button>
+                    <button type="button" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 ml-2" onclick="closeModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
-{% endblock content %}
+<script>
+    // Open the modal
+    function openModal() {
+        document.getElementById('testimonialModal').classList.remove('hidden');
+    }
+
+    // Close the modal
+    function closeModal() {
+        document.getElementById('testimonialModal').classList.add('hidden');
+    }
+
+    // Function to submit the testimonial (you can update this based on your backend)
+    function submitTestimonial() {
+        // Here you can add your form submission logic
+        alert("Testimonial submitted!");
+        closeModal();
+    }
+</script>
+{% endblock %}
+
