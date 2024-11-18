@@ -1,3 +1,66 @@
+<!-- {% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clean Students Navbar</title>
+    {% load static %}
+    <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head> -->
+
+<!-- <body>
+    <nav class="navbar">
+        <div class="navbar-container flex justify-between items-center w-full">
+            <div class="logo">
+                <img src="{% static 'images/cleanstudentslogo.png' %}" alt="CleanStudents Logo" class="logo-img">
+            </div>
+            <div class="flex-shrink-0 flex px-2 py-1 items-center space-x-8">
+                {% if not user.is_active %}
+                Not logged in - show login/signup only
+                <a class="text-gray-700 hover:text-indigo-700 text-sm font-medium" href="{% url 'login' %}">Login</a>
+                <a class="text-gray-800 bg-indigo-100 hover:bg-indigo-200 inline-flex items-center justify-center px-3 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm"
+                    href="{% url 'register_landing' %}">Sign up</a>
+                {% else %}
+                Logged in - show profile picture and nav links
+                <div class="flex items-center space-x-4">
+                    {% if not is_worker %}
+                        <p>User | {{ user.name }}</p>
+                        <a href="{% url 'homepage' %}" class="text-gray-700 hover:text-indigo-700 text-sm font-medium">Homepage</a>
+                        <a href="" class="text-gray-700 hover:text-indigo-700 text-sm font-medium">MyPay</a>
+                        <a href="{% url 'services:service_bookings' %}" class="text-gray-700 hover:text-indigo-700 text-sm font-medium">Bookings</a>
+                        <a href="{% url 'discount' %}" class="text-gray-700 hover:text-indigo-700 text-sm font-medium">Discount</a>
+                    {% else %}
+                        <p>Worker | {{ user.name }}</p>
+                        <a href="{% url 'homepage' %}" class="text-gray-700 hover:text-indigo-700 text-sm font-medium">Homepage</a>
+                        <a href="#" class="text-gray-700 hover:text-indigo-700 text-sm font-medium">Manage My Jobs</a>
+                        <a href="#" class="text-gray-700 hover:text-indigo-700 text-sm font-medium">Manage Order Status</a>
+                        <a href="" class="text-gray-700 hover:text-indigo-700 text-sm font-medium">MyPay</a>
+                    {% endif %}
+                    <a href="{% url 'logout' %}" class="text-gray-700 hover:text-indigo-700 text-sm font-medium">Logout</a>
+                     -->
+                    <!-- Replace the existing profile picture section -->
+                    <!-- {% if user.sex == 'female' %}
+                    <a href="{% url 'profile' %}">
+                        <img src="{% static 'images/profilewoman.png' %}" alt="Profile" class="profile-picture">
+                    </a>
+                    {% else %}
+                    <a href="{% url 'profile' %}">
+                        <img src="{% static 'images/profileman.png' %}" alt="Profile" class="profile-picture">
+                    </a>
+                    {% endif %} -->
+                <!-- </div>
+                {% endif %}
+            </div>
+        </div>
+    </nav> -->
+
+<!-- </div>
+</body>
+</html> -->
+
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
@@ -9,6 +72,11 @@
     {% load static %}
     <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <style>
+        .group:hover .group-hover\:block {
+            display: block;
+        }
+    </style>
 </head>
 
 <body>
@@ -25,48 +93,48 @@
                     href="{% url 'register_landing' %}">Sign up</a>
                 {% else %}
                 <!-- Logged in - show profile picture and nav links -->
-                <div class="flex items-center space-x-4">
-                    {% if not is_worker %}
-                        <p>User | {{ user.name }}</p>
-                        <a href="{% url 'homepage' %}" class="text-gray-700 hover:text-indigo-700 text-sm font-medium">Homepage</a>
-                        <a href="" class="text-gray-700 hover:text-indigo-700 text-sm font-medium">MyPay</a>
-                        <a href="{% url 'services:service_bookings' %}" class="text-gray-700 hover:text-indigo-700 text-sm font-medium">Bookings</a>
-                        <a href="{% url 'discount' %}" class="text-gray-700 hover:text-indigo-700 text-sm font-medium">Discount</a>
-                    {% else %}
-                        <p>Worker | {{ user.name }}</p>
-                        <a href="{% url 'homepage' %}" class="text-gray-700 hover:text-indigo-700 text-sm font-medium">Homepage</a>
-                        <a href="#" class="text-gray-700 hover:text-indigo-700 text-sm font-medium">Manage My Jobs</a>
-                        <a href="#" class="text-gray-700 hover:text-indigo-700 text-sm font-medium">Manage Order Status</a>
-                        <a href="" class="text-gray-700 hover:text-indigo-700 text-sm font-medium">MyPay</a>
-                    {% endif %}
-                    <a href="{% url 'logout' %}" class="text-gray-700 hover:text-indigo-700 text-sm font-medium">Logout</a>
-                    
-                    <!-- Replace the existing profile picture section -->
-                    {% if user.sex == 'female' %}
-                    <a href="{% url 'profile' %}">
-                        <img src="{% static 'images/profilewoman.png' %}" alt="Profile" class="profile-picture">
-                    </a>
-                    {% else %}
-                    <a href="{% url 'profile' %}">
-                        <img src="{% static 'images/profileman.png' %}" alt="Profile" class="profile-picture">
-                    </a>
-                    {% endif %}
+                <div class="flex items-center space-x-5">
+                    <p>{{ is_worker|yesno:"Worker,User" }} | {{ user.name }}</p>
+                    <a href="{% url 'homepage' %}" class="text-gray-9000 hover:text-blue-900 text-sm font-semibold">Homepage</a>
+                    <div class="relative">
+                        <button onclick="toggleDropdown()" class="focus:outline-none">
+                            {% if user.sex == 'female' %}
+                            <img src="{% static 'images/profilewoman.png' %}" alt="Profile" class="profile-picture">
+                            {% else %}
+                            <img src="{% static 'images/profileman.png' %}" alt="Profile" class="profile-picture">
+                            {% endif %}
+                        </button>
+                        <div id="dropdownMenu" class="hidden absolute bg-white border rounded shadow-lg mt-2 w-48">
+                            <a href="{% url 'profile' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Profile</a>
+                            <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">MyPay</a>
+                            <a href="{% url 'services:service_bookings' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Bookings</a>
+                            <a href="{% url 'discount' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Discount</a>
+                            <a href="{% url 'logout' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Logout</a>
+                        </div>
+                    </div>
                 </div>
                 {% endif %}
             </div>
         </div>
     </nav>
-<<<<<<< HEAD
-
-    <!-- Content Placeholder -->
-    <div class="content mt-24">
-        <!-- Page content goes here -->
-    </div>
-</div>
+    <script>
+        function toggleDropdown() {
+            var dropdownMenu = document.getElementById('dropdownMenu');
+            dropdownMenu.classList.toggle('hidden');
+        }
+        // Close the dropdown if the user clicks outside of it
+        window.onclick = function(event) {
+            if (!event.target.matches('.profile-picture')) {
+                var dropdowns = document.getElementsByClassName("dropdown-content");
+                for (var i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (!openDropdown.classList.contains('hidden')) {
+                        openDropdown.classList.add('hidden');
+                    }
+                }
+            }
+        }
+    </script>
 </body>
 </html>
-=======
-</body>
 
-</html>
->>>>>>> 29a3fcb6ce73468143cf2ac9fd7f7b8a12e47db5
