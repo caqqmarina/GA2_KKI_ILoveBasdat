@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.models import User  # No Worker model here
 # from .models import UserProfile, WorkerProfile  # Import your custom models
 from django.contrib.auth.hashers import make_password
-from .models import User, Worker
+from .models import User, Worker, Transaction
 
 class UserRegistrationForm(forms.ModelForm):
     class Meta:
@@ -46,3 +46,9 @@ class WorkerProfileUpdateForm(forms.ModelForm):
             'birth_date': forms.DateInput(attrs={'type': 'date'}),
             'image_url': forms.URLInput(attrs={'placeholder': 'Enter image URL'})
         }
+
+class TransactionForm(forms.ModelForm):
+    class Meta:
+        model = Transaction
+        fields = ["amount", "date", "category"]
+        
