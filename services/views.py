@@ -4,7 +4,7 @@ from services.forms import SubcategoryForm, CategoryForm
 from django.contrib.auth.decorators import login_required
 from .forms import TestimonialForm
 from django.contrib import messages
-from .models import User, Worker
+from .models import User, Worker, ServiceOrder
 
 def authenticate(request):
     # Check if user is authenticated using the phone number stored in session
@@ -116,3 +116,26 @@ def service_bookings(request):
     }
         
     return render(request, 'service_booking.html', context)
+
+def service_order_list(request):
+    # Display a list of all service orders
+    orders = ServiceOrder.objects.all()
+    return render(request, 'service_orders/order_list.html', {'orders': orders})
+
+def update_status(request, order_id):
+    order = ServiceOrder.objects.get(id=order_id)
+
+    # Update the order status based on the current status
+    if order.status == 'waiting_for_departure':
+        order.status = 'arrived_at_location'
+    elif order.status == 'arrived_at_location':
+        order.status = 'service_in_progress'
+    elif order.status == 'service_in_progress':
+        order.status = 'order_completed'
+    elif order.status == 'order_completed' or order.status == 'order_canceled':
+        # No further status changes are allowed after completion or cancellation
+        return redirect('service_order_list')
+
+    order.save()
+    return redirect('service_order_list')
+

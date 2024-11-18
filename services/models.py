@@ -56,3 +56,20 @@ class WorkerService(models.Model):
 
     def __str__(self):
         return f"{self.worker.name} in {self.subcategory.name}"
+
+class ServiceOrder(models.Model):
+    STATUS_CHOICES = [
+        ('waiting_for_departure', 'Waiting for Worker to Depart'),
+        ('arrived_at_location', 'Worker Arrived at Location'),
+        ('service_in_progress', 'Service in Progress'),
+        ('order_completed', 'Order Completed'),
+        ('order_canceled', 'Order Canceled'),
+    ]
+
+    order_name = models.CharField(max_length=100)
+    status = models.CharField(max_length=25, choices=STATUS_CHOICES, default='waiting_for_departure')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.order_name
