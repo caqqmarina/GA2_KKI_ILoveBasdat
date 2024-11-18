@@ -1,38 +1,98 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Orders</title>
-</head>
-<body>
-    <h1>Service Orders</h1>
-    
-    <table>
-        <thead>
-            <tr>
-                <th>Order Name</th>
-                <th>Status</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for order in orders %}
-            <tr>
-                <td>{{ order.order_name }}</td>
-                <td>{{ order.get_status_display }}</td>
-                <td>
-                    {% if order.status == "waiting_for_departure" %}
-                    <a href="{% url 'update_status' order.id %}">Arrived at Location</a>
-                    {% elif order.status == "arrived_at_location" %}
-                    <a href="{% url 'update_status' order.id %}">Providing Service</a>
-                    {% elif order.status == "service_in_progress" %}
-                    <a href="{% url 'update_status' order.id %}">Service Completed</a>
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</body>
-</html>
+{% extends 'base.html' %}
+{% block content %}
+{% include 'navbar1.html' %}
+
+<!-- Box Container -->
+<div class="bg-transparent p-8 rounded-lg mb-8">
+    <h2 class="text-lg font-semibold text-indigo-700"></h2>
+    <p class="text-sm text-gray-600"></p>
+</div>
+
+<div class="container mx-auto mt-10 max-w-6xl">
+    <!-- Filters -->
+    <div class="flex justify-between items-center mb-6">
+        <!-- Category Filter -->
+        <div class="flex items-center">
+            <label for="category" class="mr-2 font-medium">Category</label>
+            <select id="category" name="category" class="border border-gray-400 rounded px-3 py-2">
+                <option value="">Select Category</option>
+                {% for category in categories %}
+                    <option value="{{ category.id }}">{{ category.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Subcategory Filter -->
+        <div class="flex items-center">
+            <label for="subcategory" class="mr-2 font-medium">Subcategory</label>
+            <select id="subcategory" name="subcategory" class="border border-gray-400 rounded px-3 py-2">
+                <option value="">Select Subcategory</option>
+                {% for subcategory in subcategories %}
+                    <option value="{{ subcategory.id }}">{{ subcategory.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="flex items-center w-1/3">
+            <input
+                type="text"
+                placeholder="Search"
+                class="w-full border border-gray-400 rounded px-3 py-2"
+            />
+            <button class="ml-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Search</button>
+        </div>
+    </div>
+
+    <!-- Order List -->
+    <div class="space-y-4">
+        {% for order in orders %}
+        <div class="border border-gray-400 rounded-lg p-4">
+            <!-- Order Details -->
+            <div class="grid grid-cols-5 gap-4 text-sm">
+                <!-- Subcategory Name -->
+                <div>
+                    <span class="font-semibold">Subcategory Name:</span>
+                    <p>{{ order.subcategory.name }}</p>
+                </div>
+                <!-- User's Name -->
+                <div>
+                    <span class="font-semibold">User's Name:</span>
+                    <p>{{ order.user.name }}</p>
+                </div>
+                <!-- Total Amount -->
+                <div>
+                    <span class="font-semibold">Total Amount:</span>
+                    <p>${{ order.total_amount }}</p>
+                </div>
+                <!-- Order and Working Dates -->
+                <div>
+                    <span class="font-semibold">Order Date:</span>
+                    <p>{{ order.order_date }}</p>
+                    <span class="font-semibold">Working Date:</span>
+                    <p>{{ order.working_date }}</p>
+                </div>
+                <!-- Session -->
+                <div>
+                    <span class="font-semibold">Session:</span>
+                    <p>{{ order.session }}</p>
+                </div>
+            </div>
+
+            <!-- Action Button -->
+            <div class="mt-4 text-right">
+                <button class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+                    Accept Order
+                </button>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center">
+            <p>No orders available.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock content %}
+

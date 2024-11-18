@@ -118,9 +118,21 @@ def service_bookings(request):
     return render(request, 'service_booking.html', context)
 
 def service_order_list(request):
+    user, is_worker = authenticate(request)
+
+    if not user:  # Redirect to login if user is not authenticated
+        return redirect('login')
+
     # Display a list of all service orders
     orders = ServiceOrder.objects.all()
-    return render(request, 'service_orders/order_list.html', {'orders': orders})
+
+    context = {
+        'orders': orders,
+        'user': user,
+        'is_worker': is_worker
+    }
+
+    return render(request, 'service_orders/order_list.html', context)
 
 def update_status(request, order_id):
     order = ServiceOrder.objects.get(id=order_id)
