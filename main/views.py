@@ -9,7 +9,7 @@ from django.contrib.auth import logout
 from .models import Voucher, Promo
 from django.http import HttpResponseRedirect
 from django.urls import reverse
-from .models import User, Worker
+from .models import User, Worker, Transaction
 from .forms import UserProfileUpdateForm, WorkerProfileUpdateForm
 from services.models import ServiceCategory, Subcategory
 from django.db.models import Q 
@@ -250,10 +250,26 @@ def profile_view(request):
         'form': form,
         # Placeholder values for now
         'level': 'Bronze',
-        'mypay_balance': 0.00,
+        'mypay_balance': user.mypay_balance,
         'rate': 0.00,
         'completed_orders': 0,
         'job_categories': []
     }
 
     return render(request, 'profile.html', context)
+
+def mypay(request):
+    user = User.objects.filter(phone_number=request.session.get('user_phone')).first()
+    if not user:
+        return redirect('login')
+
+    is_worker = Worker.objects.filter(user_ptr_id=user.id).exists()
+
+    context = {
+        'user': user,
+        'is_worker': is_worker,
+        'mypay_balance': user.mypay_balance,
+        'transactions': Transaction.objects.filter(user=user.id).order_by('-date'),
+    }
+
+    return render(request, 'mypay.html', context)
