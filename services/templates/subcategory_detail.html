@@ -13,7 +13,7 @@
         <div class="border p-4 rounded mb-2">
             <p><strong>{{ testimonial.user.username }}</strong> | {{ testimonial.date }}</p>
             <p>Rating: {{ testimonial.rating }}</p>
-            <p>{{ testimonial.comment }}</p>
+            <p>{{ testimonial.content }}</p>
         </div>
         {% empty %}
         <p>No testimonials yet. Be the first to write one!</p>

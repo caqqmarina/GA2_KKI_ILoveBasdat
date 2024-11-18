@@ -14,7 +14,7 @@ class SubcategoryForm(forms.ModelForm):
 class TestimonialForm(forms.ModelForm):
     class Meta:
         model = Testimonial
-        fields = ['rating', 'comment']
+        fields = ['rating', 'content']
         widgets = {
             'rating': forms.NumberInput(attrs={
                 'min': 1,
@@ -22,7 +22,7 @@ class TestimonialForm(forms.ModelForm):
                 'class': 'form-control',
                 'placeholder': 'Rating (1-10)',
             }),
-            'comment': forms.Textarea(attrs={
+            'content': forms.Textarea(attrs={
                 'class': 'form-control',
                 'placeholder': 'Write your feedback here...',
                 'rows': 4,
