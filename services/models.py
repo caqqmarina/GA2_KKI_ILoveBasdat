@@ -73,3 +73,27 @@ class ServiceOrder(models.Model):
 
     def __str__(self):
         return self.order_name
+
+class WorkerServiceOrder(models.Model):
+    STATUS_CHOICES = [
+        ('looking_for_worker', 'Looking for Nearby Worker'),
+        ('worker_assigned', 'Waiting for Worker'),
+        ('in_progress', 'Service in Progress'),
+        ('completed', 'Completed'),
+        ('cancelled', 'Cancelled')
+    ]
+
+    subcategory = models.ForeignKey(Subcategory, on_delete=models.CASCADE)
+    session = models.CharField(max_length=100)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='looking_for_worker')
+    workers = models.ManyToManyField(Worker, related_name='available_orders')
+    assigned_worker = models.ForeignKey(Worker, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_orders')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def get_status_display(self):
+        return dict(self.STATUS_CHOICES)[self.status]
+
+    def __str__(self):
+        return f"Order #{self.id} - {self.subcategory.name} - {self.get_status_display()}"
