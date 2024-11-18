@@ -17,4 +17,5 @@ urlpatterns = [
     # path('worker/profile/', views.worker_profile, name='worker_profile'),
     path('logout/', views.logout_user, name='logout'),
     path('discount/', views.discount_page, name='discount'),
+    path('profile/', views.profile_view, name='profile'),
 ]

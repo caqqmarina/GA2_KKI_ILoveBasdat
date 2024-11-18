@@ -28,16 +28,19 @@ class WorkerRegistrationForm(UserRegistrationForm):
     class Meta(UserRegistrationForm.Meta):
         model = Worker
         fields = UserRegistrationForm.Meta.fields + ['bank_name', 'account_number', 'npwp', 'image_url']
-        
-# class UserProfileForm(forms.ModelForm):
-#     class Meta:
-#         model = UserProfile
-#         exclude = ['user', 'mypay_balance', 'level']  # Exclude non-editable fields
 
-# class WorkerProfileForm(forms.ModelForm):
-#     class Meta:
-#         model = WorkerProfile
-#         exclude = ['user', 'mypay_balance', 'rate', 'completed_orders_count', 'job_categories']  # Exclude non-editable fields
-#     class Meta(UserRegistrationForm.Meta):
-#         model = Worker
-#         fields = UserRegistrationForm.Meta.fields + ['bank_name', 'account_number', 'npwp', 'image_url']
+class UserProfileUpdateForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['name', 'sex', 'phone_number', 'birth_date', 'address']
+        widgets = {
+            'birth_date': forms.DateInput(attrs={'type': 'date'})
+        }
+
+class WorkerProfileUpdateForm(forms.ModelForm):
+    class Meta:
+        model = Worker 
+        fields = ['name', 'sex', 'phone_number', 'birth_date', 'address', 'bank_name', 'account_number', 'npwp']
+        widgets = {
+            'birth_date': forms.DateInput(attrs={'type': 'date'})
+        }

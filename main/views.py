@@ -10,7 +10,7 @@ from .models import Voucher, Promo
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from .models import User, Worker
-
+from .forms import UserProfileUpdateForm, WorkerProfileUpdateForm
 
 def homepage(request):
     user_phone = request.session.get('user_phone')
@@ -42,7 +42,6 @@ def login_view(request):
     return render(request, 'login.html')
 
 def logout_user(request):
-    logout(request)
     return redirect('landing')
 
 def register_landing(request):
@@ -120,3 +119,40 @@ def buy_voucher(request, voucher_id):
 
     messages.error(request, 'Invalid request.')
     return HttpResponseRedirect(reverse('discount'))
+
+def profile_view(request):
+    user = User.objects.filter(phone_number=request.session.get('user_phone')).first()
+    if not user:
+        return redirect('login')
+
+    is_worker = Worker.objects.filter(user_ptr_id=user.id).exists()
+
+    if request.method == 'POST':
+        if is_worker:
+            form = WorkerProfileUpdateForm(request.POST, instance=user.worker)
+        else:
+            form = UserProfileUpdateForm(request.POST, instance=user)
+        
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Profile updated successfully.')
+            return redirect('profile')
+    else:
+        if is_worker:
+            form = WorkerProfileUpdateForm(instance=user.worker)
+        else: 
+            form = UserProfileUpdateForm(instance=user)
+
+    context = {
+        'user': user,
+        'is_worker': is_worker,
+        'form': form,
+        # Placeholder values for now
+        'level': 'Bronze',
+        'mypay_balance': 0.00,
+        'rate': 0.00,
+        'completed_orders': 0,
+        'job_categories': []
+    }
+
+    return render(request, 'profile.html', context)

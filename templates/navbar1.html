@@ -41,10 +41,15 @@
                     {% endif %}
                     <a href="{% url 'logout' %}" class="text-gray-700 hover:text-indigo-700 text-sm font-medium">Logout</a>
                     
+                    <!-- Replace the existing profile picture section -->
                     {% if user.sex == 'female' %}
+                    <a href="{% url 'profile' %}">
                         <img src="{% static 'images/profilewoman.png' %}" alt="Profile" class="profile-picture">
+                    </a>
                     {% else %}
+                    <a href="{% url 'profile' %}">
                         <img src="{% static 'images/profileman.png' %}" alt="Profile" class="profile-picture">
+                    </a>
                     {% endif %}
                 </div>
                 {% endif %}
