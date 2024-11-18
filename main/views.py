@@ -115,9 +115,48 @@ def discount_page(request):
     if not user:
         return redirect('login')  # Redirect to login if not authenticated
 
-    # Now that the user is authenticated, you can fetch vouchers and promos
-    vouchers = Voucher.objects.all()
-    promos = Promo.objects.all()
+    # Hardcoded voucher data
+    vouchers = [
+        {
+            'code': 'VOUCHER1',
+            'discount': 10.00,  # 10% discount
+            'min_transaction_order': 50.00,  # Minimum transaction order: $50
+            'valid_days': 30,  # Valid for 30 days
+            'user_quota': 100,  # Maximum 100 users can use this voucher
+            'price': 5.00  # Voucher price: $5
+        },
+        {
+            'code': 'VOUCHER2',
+            'discount': 15.00,  # 15% discount
+            'min_transaction_order': 100.00,  # Minimum transaction order: $100
+            'valid_days': 60,  # Valid for 60 days
+            'user_quota': 200,  # Maximum 200 users can use this voucher
+            'price': 8.00  # Voucher price: $8
+        },
+        {
+            'code': 'VOUCHER3',
+            'discount': 20.00,  # 20% discount
+            'min_transaction_order': 150.00,  # Minimum transaction order: $150
+            'valid_days': 45,  # Valid for 45 days
+            'user_quota': 300,  # Maximum 300 users can use this voucher
+            'price': 10.00  # Voucher price: $10
+        },
+        {
+            'code': 'VOUCHER4',
+            'discount': 5.00,  # 5% discount
+            'min_transaction_order': 20.00,  # Minimum transaction order: $20
+            'valid_days': 15,  # Valid for 15 days
+            'user_quota': 50,  # Maximum 50 users can use this voucher
+            'price': 2.00  # Voucher price: $2
+        }
+    ]
+
+    # Hardcoded promo data
+    promos = [
+        {'code': 'PROMO10', 'offer_end_date': '2024-12-31'},
+        {'code': 'PROMO20', 'offer_end_date': '2024-11-30'},
+        {'code': 'PROMO30', 'offer_end_date': '2024-12-15'},
+    ]
 
     context = {
         'vouchers': vouchers,
@@ -125,7 +164,6 @@ def discount_page(request):
         'user': user,
         'is_worker':is_worker
     }
-
     return render(request, 'discount.html', context)
 
 def buy_voucher(request, voucher_id):
