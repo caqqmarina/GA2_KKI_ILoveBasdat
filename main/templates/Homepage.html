@@ -3,14 +3,17 @@
 {% block title %}{% endblock %}
 {% block content %}
 {% include 'navbar1.html' %} 
+
 <!-- Box Container -->
 <div class="bg-transparent p-8 rounded-lg mb-8">
     <h2 class="text-lg font-semibold text-indigo-700"></h2>
     <p class="text-sm text-gray-600"></p>
 </div>
-<div> <!-- Add padding to push content below navbar -->
-    <h1 class="text-center text-4xl font-bold mt-10">Welcome to the Homepage</h1>
-    <p class="text-center text-gray-600 mt-4">Lorem ipsum dolor sit amet</p>
+
+<div class="mt-10 mx-auto max-w-4xl"> 
+    <div class="flex justify-between items-center border-b-2 pb-2">
+        <h1 class="text-xl font-bold">Homepage</h1>
+    </div>
     {% if user and user.is_authenticated %}
         <p class="text-center text-green-600 mt-4">User is authenticated</p>
         {% if is_worker %}
