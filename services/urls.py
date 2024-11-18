@@ -5,6 +5,8 @@ from services.views import (
     service_bookings,
     testimonials,
     create_testimonial,
+    service_order_list, 
+    update_status
 )
 
 app_name = 'services'
@@ -14,6 +16,9 @@ urlpatterns = [
     path('subcategory/<int:subcategory_id>/testimonials/', testimonials, name='testimonials'),
     path('subcategory/<int:subcategory_id>/create-testimonial/', create_testimonial, name='create_testimonial'),
     path('bookings/', service_bookings, name='service_bookings'),
-    path('', views.service_order_list, name='service_order_list'),
-    path('update_status/<int:order_id>/', views.update_status, name='update_status'),
+    path('', service_order_list, name='service_order_list'),
+    path('update_status/<int:order_id>/', update_status, name='update_status'),
+    path('jobs/', views.service_order_list, name='service_order_list'),
+    path('jobs/update_status/<int:order_id>/', views.update_status, name='update_status'),
+    path('api/subcategories/<int:category_id>/', views.get_subcategories, name='get_subcategories'),
 ]
