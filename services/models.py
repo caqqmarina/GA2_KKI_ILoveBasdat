@@ -22,7 +22,7 @@ class Testimonial(models.Model):
     subcategory = models.ForeignKey(Subcategory, related_name='testimonials', on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     content = models.TextField()
-    rating = models.PositiveSmallIntegerField()  # Add a rating field
+    rating = models.PositiveSmallIntegerField(default=5)  # Add a default value for rating
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
