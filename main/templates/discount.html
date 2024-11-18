@@ -13,59 +13,120 @@
         <h1 class="text-xl font-bold">Discount</h1>
     </div>
 
+    <!-- Voucher Label -->
+    <div class="mt-6">
+        <h2 class="text-lg">Vouchers</h2>
+    </div>
+
     <!-- Voucher Table -->
-    <h3 class="mb-3">Voucher</h3>
-    <table class="table table-bordered text-center">
-        <thead class="table-light">
-            <tr>
-                <th>Code</th>
-                <th>Discount</th>
-                <th>Min Tr Order</th>
-                <th>Number Day Valid</th>
-                <th>User Quota</th>
-                <th>Price</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for voucher in vouchers %}
-            <tr>
-                <td>{{ voucher.code }}</td>
-                <td>{{ voucher.discount }}%</td>
-                <td>{{ voucher.min_transaction_order }}</td>
-                <td>{{ voucher.valid_days }}</td>
-                <td>{{ voucher.user_quota }}</td>
-                <td>{{ voucher.price }}</td>
-                <td>
-                    <form method="post" action="{% url 'buy_voucher' voucher.id %}">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-primary">Buy</button>
-                    </form>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="border border-gray-400 rounded-lg mt-6">
+        <table class="table-auto w-full text-center">
+            <thead>
+                <tr class="bg-gray-200">
+                    <th class="px-4 py-2">Code</th>
+                    <th class="px-4 py-2">Discount</th>
+                    <th class="px-4 py-2">Min Tr Order</th>
+                    <th class="px-4 py-2">Number Day Valid</th>
+                    <th class="px-4 py-2">User Quota</th>
+                    <th class="px-4 py-2">Price</th>
+                    <th class="px-4 py-2">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for voucher in vouchers %}
+                <tr>
+                    <td class="px-4 py-2">{{ voucher.code }}</td>
+                    <td class="px-4 py-2">{{ voucher.discount }}%</td>
+                    <td class="px-4 py-2">{{ voucher.min_transaction_order }}</td>
+                    <td class="px-4 py-2">{{ voucher.valid_days }}</td>
+                    <td class="px-4 py-2">{{ voucher.user_quota }}</td>
+                    <td class="px-4 py-2">${{ voucher.price }}</td>
+                    <td>
+                        <form method="post" action="{% url 'buy_voucher' 1%}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-primary bg-blue-500 text-white px-4 py-1 rounded">Buy</button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr class="border-t">
+                    <td colspan="7" class="px-4 py-2 text-center">No Discounts.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="modal hidden fixed top-0 left-0 w-full h-full bg-gray-800 bg-opacity-50 flex items-center justify-center">
+        <div class="modal-content bg-white p-4 rounded-lg">
+            <h2 class="text-green-500">Purchase Successful</h2>
+            <p id="successMessage">You have successfully purchased the voucher.</p>
+            <button id="closeSuccess" class="bg-green-500 text-white px-4 py-2 rounded">Close</button>
+        </div>
+    </div>
+
+    <!-- Failure Modal -->
+    <div id="failureModal" class="modal hidden fixed top-0 left-0 w-full h-full bg-gray-800 bg-opacity-50 flex items-center justify-center">
+        <div class="modal-content bg-white p-4 rounded-lg">
+            <h2 class="text-red-500">Purchase Failed</h2>
+            <p id="failureMessage">Insufficient balance to purchase the voucher.</p>
+            <button id="closeFailure" class="bg-red-500 text-white px-4 py-2 rounded">Close</button>
+        </div>
+    </div>
+
+    <!-- Promo Label -->
+    <div class="mt-6">
+        <h2 class="text-lg">Promo</h2>
+    </div>
 
     <!-- Promo Table -->
-    <h3 class="mt-5 mb-3">Promo</h3>
-    <table class="table table-bordered text-center">
-        <thead class="table-light">
-            <tr>
-                <th>Code</th>
-                <th>Offer End Date</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for promo in promos %}
-            <tr>
-                <td>{{ promo.code }}</td>
-                <td>{{ promo.offer_end_date }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="border border-gray-400 rounded-lg mt-6">
+        <table class="table-auto w-full text-center">
+            <thead>
+                <tr class="bg-gray-200">
+                    <th class="px-4 py-2">Code</th>
+                    <th class="px-4 py-2">Offer End Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for promo in promos %}
+                <tr>
+                    <td>{{ promo.code }}</td>
+                    <td>{{ promo.offer_end_date }}</td>
+                </tr>
+                {% empty %}
+                <tr class="border-t">
+                    <td colspan="2" class="px-4 py-2 text-left">No Promos</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-{% endblock content %}
+<script>
+    {% if messages %}
+    {% for message in messages %}
+        {% if message.tags == 'success' %}
+            // Display Success Modal
+            document.getElementById('successMessage').textContent = '{{ message }}';
+            document.getElementById('successModal').classList.remove('hidden');
+        {% elif message.tags == 'error' %}
+            // Display Failure Modal
+            document.getElementById('failureMessage').textContent = '{{ message }}';
+            document.getElementById('failureModal').classList.remove('hidden');
+        {% endif %}
+    {% endfor %}
+    {% endif %}
+
+    // Close Modals
+    document.getElementById('closeSuccess').addEventListener('click', function () {
+        document.getElementById('successModal').classList.add('hidden');
+    });
+    document.getElementById('closeFailure').addEventListener('click', function () {
+        document.getElementById('failureModal').classList.add('hidden');
+    });
+</script>
+
+{% endblock %}
