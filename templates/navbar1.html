@@ -106,7 +106,7 @@
                         </button>
                         <div id="dropdownMenu" class="hidden absolute bg-white border rounded shadow-lg mt-2 w-48">
                             <a href="{% url 'profile' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Profile</a>
-                            <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">MyPay</a>
+                            <a href="{% url 'mypay' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">MyPay</a>
                             {% if is_worker %}
                             <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Manage My Jobs</a>
                             <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Manage Order Status</a>

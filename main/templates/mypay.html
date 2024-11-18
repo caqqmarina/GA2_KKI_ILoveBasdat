@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block content %}
+{% include 'navbar1.html' %}
+
+<!-- Box Container -->
+<div class="bg-transparent p-8 rounded-lg mb-8">
+    <h2 class="text-lg font-semibold text-indigo-700"></h2>
+    <p class="text-sm text-gray-600"></p>
+</div>
+
+<div class="min-h-screen bg-gray-100 py-10">
+    <div class="max-w-3xl mx-auto bg-white rounded-lg shadow p-8">
+        <div class="text-center mb-6">
+            <h1 class="text-2xl font-bold">MyPay</h1>
+        </div>
+
+        <div class="flex gap-4">
+            <div class="flex items-center justify-between p-4 border-2 border-black rounded-lg flex-grow">
+                <span class="flex-1 mr-4">Phone Number: {{ user.phone_number }}</span>
+                <span class="ml-4">MyPay Balance: ${{ mypay_balance }}</span>
+            </div>
+            <div class="flex items-center ml-auto">
+                <button id="transactButton" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-grey-600">Transact</button>
+            </div>
+        </div>
+
+        <div class="mt-8 p-4 border-2 border-black rounded-lg">
+            <p>Transaction History</p>
+
+            {% if transactions %}
+                <ul>
+                {% for transaction in transactions %}
+                    <li>
+                        <p>{{ transaction.amount }}</p>
+                        <p>Created on: {{ transaction.date }}</p>
+                        <p>{{ transaction.category }}</p>
+                    </li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                <span class="text-center">No objects found.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const transactButton = document.getElementById('transactButton');
+    const cancelBtn = document.getElementById('cancelBtn');
+
+    transactButton.addEventListener('click', function() {
+        alert("Hello!");
+    });
+
+    cancelBtn.addEventListener('click', function() {
+        profileInfo.classList.remove('hidden');
+        updateForm.classList.add('hidden');
+    });
+});
+</script>
+
+{% endblock %}

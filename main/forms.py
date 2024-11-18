@@ -17,6 +17,7 @@ class UserRegistrationForm(forms.ModelForm):
         user = super().save(commit=False)
         if commit:
             user.username = user.phone_number
+            user.mypay_balance = 0
             user.save()
         return user
 
