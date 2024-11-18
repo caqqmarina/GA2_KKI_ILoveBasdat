@@ -85,11 +85,13 @@ def service_bookings(request):
     # Retrieve booked sessions
     booked_session_ids = request.session.get('booked_sessions', [])
     booked_sessions = ServiceSession.objects.filter(id__in=booked_session_ids)
+    unique_subcategories = {session.subcategory for session in booked_sessions}
 
     context = {
         'user': user,
         'is_worker': is_worker,
-        'booked_sessions': booked_sessions
+        'booked_sessions': booked_sessions,
+        'unique_subcategories': unique_subcategories,
     }
         
     return render(request, 'service_booking.html', context)

@@ -12,6 +12,24 @@ from django.urls import reverse
 from .models import User, Worker
 from .forms import UserProfileUpdateForm, WorkerProfileUpdateForm
 
+def authenticate(request):
+    # Check if user is authenticated using the phone number stored in session
+    user_phone = request.session.get('user_phone')
+
+    if not user_phone:
+        messages.error(request, "You need to log in first.")
+        return None, False  # No user and not authenticated
+
+    user = User.objects.filter(phone_number=user_phone).first()
+    if not user:
+        messages.error(request, "User not found.")
+        return None, False  # User not found, not authenticated
+
+    # If user exists and is authenticated
+    is_worker = Worker.objects.filter(user_ptr_id=user.id).exists()
+
+    return user, is_worker 
+
 def homepage(request):
     user_phone = request.session.get('user_phone')
     is_authenticated = request.session.get('is_authenticated', False)
@@ -92,9 +110,23 @@ def register_worker(request):
 #     return render(request, 'worker_profile.html', {'form': form, 'profile': profile})
 
 def discount_page(request):
+    user, is_worker = authenticate(request)  # Check authentication
+
+    if not user:
+        return redirect('login')  # Redirect to login if not authenticated
+
+    # Now that the user is authenticated, you can fetch vouchers and promos
     vouchers = Voucher.objects.all()
     promos = Promo.objects.all()
-    return render(request, 'discount.html', {'vouchers': vouchers, 'promos': promos})
+
+    context = {
+        'vouchers': vouchers,
+        'promos': promos,
+        'user': user,
+        'is_worker':is_worker
+    }
+
+    return render(request, 'discount.html', context)
 
 def buy_voucher(request, voucher_id):
     if request.method == 'POST':

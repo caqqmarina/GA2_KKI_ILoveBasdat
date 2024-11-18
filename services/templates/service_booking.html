@@ -12,6 +12,41 @@
         <h1 class="text-xl font-bold">Booked Sessions</h1>
     </div>
 
+    <!-- Filters -->
+    <div class="mt-10 flex space-x-4 mb-6">
+        <!-- Subcategory Dropdown -->
+        <div class="flex items-center">
+            <label for="subcategory" class="mr-2 font-semibold">Subcategory</label>
+            <select id="subcategory" name="subcategory" class="border border-gray-400 rounded px-3 py-2">
+                <option value="">Select Subcategory</option>
+                {% for subcategory in unique_subcategories %}
+                    <option value="subcategory1">{{ subcategory.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Order Status Dropdown -->
+        <div class="flex items-center">
+            <label for="order_status" class="mr-2 font-semibold">Order Status</label>
+            <select id="order_status" name="order_status" class="border border-gray-400 rounded px-3 py-2">
+                <option value="">Select Status</option>
+                <option value="WP">Waiting for Payment</option>
+                <option value="SNW">Searching for Nearest Workers</option>
+                <option value="OC">Order Completed</option>
+            </select>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="flex items-center">
+            <input
+                type="text"
+                placeholder="Search"
+                class="border border-gray-400 rounded px-3 py-2 w-full"
+            />
+            <button class="ml-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Search</button>
+        </div>
+    </div>
+
     <!-- Booked Sessions List -->
     <div class="border border-gray-400 rounded-lg mt-6">
         <table class="table-auto w-full text-left">
@@ -20,6 +55,9 @@
                     <th class="px-4 py-2">Subcategory</th>
                     <th class="px-4 py-2">Service Session</th>
                     <th class="px-4 py-2">Price</th>
+                    <th class="px-4 py-2">Worker Name</th>
+                    <th class="px-4 py-2">Status</th>
+                    <th class="px-4 py-2">Action</th>
                 </tr>
             </thead>
             <tbody>
