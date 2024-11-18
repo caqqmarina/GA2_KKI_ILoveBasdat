@@ -93,9 +93,9 @@
                     href="{% url 'register_landing' %}">Sign up</a>
                 {% else %}
                 <!-- Logged in - show profile picture and nav links -->
-                <div class="flex items-center space-x-5">
-                    <p>{{ is_worker|yesno:"Worker,User" }} | {{ user.name }}</p>
-                    <a href="{% url 'homepage' %}" class="text-gray-9000 hover:text-blue-900 text-sm font-semibold">Homepage</a>
+                <div class="flex items-center space-x-6">
+                    <p class="text-blue-500">{{ is_worker|yesno:"Worker,User" }} | {{ user.name }}</p>
+                    <a href="{% url 'homepage' %}" class="text-gray-900 hover:text-blue-900 text-900 font-medium">Homepage</a>
                     <div class="relative">
                         <button onclick="toggleDropdown()" class="focus:outline-none">
                             {% if user.sex == 'female' %}
@@ -107,8 +107,13 @@
                         <div id="dropdownMenu" class="hidden absolute bg-white border rounded shadow-lg mt-2 w-48">
                             <a href="{% url 'profile' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Profile</a>
                             <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">MyPay</a>
+                            {% if is_worker %}
+                            <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Manage My Jobs</a>
+                            <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Manage Order Status</a>
+                            {% else %}
                             <a href="{% url 'services:service_bookings' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Bookings</a>
                             <a href="{% url 'discount' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Discount</a>
+                            {% endif %}
                             <a href="{% url 'logout' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Logout</a>
                         </div>
                     </div>
