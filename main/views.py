@@ -11,6 +11,8 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse
 from .models import User, Worker
 from .forms import UserProfileUpdateForm, WorkerProfileUpdateForm
+from services.models import ServiceCategory, Subcategory
+from django.db.models import Q 
 
 def authenticate(request):
     # Check if user is authenticated using the phone number stored in session
@@ -36,7 +38,36 @@ def homepage(request):
     is_worker = request.session.get('is_worker', False)
     
     user = User.objects.filter(phone_number=user_phone).first() if user_phone else None
-    return render(request, 'homepage.html', {'user': user, 'is_worker': is_worker})
+    
+    # Get search parameters
+    search_query = request.GET.get('search', '').strip()
+    category_filter = request.GET.get('category', '').strip()
+    
+    # Get all categories
+    categories = ServiceCategory.objects.all()
+    
+    # Filter subcategories based on search
+    if search_query:
+        # Case-insensitive search that matches starting characters
+        subcategories = Subcategory.objects.filter(
+            Q(name__istartswith=search_query) | 
+            Q(category__name__istartswith=search_query)
+        )
+    elif category_filter:
+        subcategories = Subcategory.objects.filter(category__name=category_filter)
+    else:
+        subcategories = Subcategory.objects.all()
+    
+    context = {
+        'user': user,
+        'is_worker': is_worker,
+        'categories': categories,
+        'subcategories': subcategories,
+        'search_query': search_query,
+        'selected_category': category_filter
+    }
+    
+    return render(request, 'homepage.html', context)
 
 def landing_page(request):
     return render(request, 'landing.html')

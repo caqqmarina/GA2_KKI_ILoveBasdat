@@ -7,13 +7,32 @@
 <div class="bg-transparent p-8 rounded-lg mb-8">
     <h2 class="text-lg font-semibold text-indigo-700"></h2>
     <p class="text-sm text-gray-600"></p>
-  </div>
+</div>
+
 <div class="min-h-screen bg-gray-100 py-10">
-    
     <div class="max-w-3xl mx-auto bg-white rounded-lg shadow p-8">
-        <div class="flex justify-between items-center mb-6">
+        <!-- Centered Profile Title -->
+        <div class="text-center mb-6">
             <h1 class="text-2xl font-bold">Profile</h1>
-            <button id="editBtn" class="bg-blue-500 text-white px-4 py-2 rounded">Update Profile</button>
+        </div>
+
+        {% if is_worker %}
+        <!-- Worker Profile Picture -->
+        <div class="flex justify-center mb-6">
+            <div class="w-40 h-40 border-2 border-blue-200 rounded-lg overflow-hidden">
+                {% if user.worker.image_url %}
+                    <img src="{{ user.worker.image_url }}" alt="Profile Picture" class="w-full h-full object-cover">
+                {% else %}
+                    <div class="w-full h-full bg-gray-200 flex items-center justify-center">
+                        <span class="text-gray-500">No Image</span>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="flex justify-right mb-6">
+            <button id="editBtn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-grey-600">Update Profile</button>
         </div>
 
         {% if messages %}
@@ -62,6 +81,14 @@
         <!-- Update Form -->
         <form id="updateForm" method="POST" class="hidden space-y-4">
             {% csrf_token %}
+            {% if is_worker %}
+            <!-- Image URL field for workers -->
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700">Profile Picture URL</label>
+                <input type="url" name="image_url" value="{{ user.worker.image_url|default:'' }}" 
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+            </div>
+            {% endif %}
             {% for field in form %}
             <div>
                 <label class="block text-sm font-medium text-gray-700">{{ field.label }}</label>
@@ -72,8 +99,8 @@
             </div>
             {% endfor %}
             <div class="flex justify-end space-x-4">
-                <button type="button" id="cancelBtn" class="bg-gray-500 text-white px-4 py-2 rounded">Cancel</button>
-                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Save Changes</button>
+                <button type="button" id="cancelBtn" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Cancel</button>
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Save Changes</button>
             </div>
         </form>
     </div>

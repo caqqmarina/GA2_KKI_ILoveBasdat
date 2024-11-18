@@ -40,7 +40,8 @@ class UserProfileUpdateForm(forms.ModelForm):
 class WorkerProfileUpdateForm(forms.ModelForm):
     class Meta:
         model = Worker 
-        fields = ['name', 'sex', 'phone_number', 'birth_date', 'address', 'bank_name', 'account_number', 'npwp']
+        fields = ['name', 'sex', 'phone_number', 'birth_date', 'address', 'bank_name', 'account_number', 'npwp', 'image_url']
         widgets = {
-            'birth_date': forms.DateInput(attrs={'type': 'date'})
+            'birth_date': forms.DateInput(attrs={'type': 'date'}),
+            'image_url': forms.URLInput(attrs={'placeholder': 'Enter image URL'})
         }

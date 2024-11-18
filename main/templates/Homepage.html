@@ -1,28 +1,80 @@
-<!-- templates/homepage.html -->
 {% extends 'base.html' %}
-{% block title %}{% endblock %}
 {% block content %}
-{% include 'navbar1.html' %} 
+{% include 'navbar1.html' %}
 
-<!-- Box Container -->
-<div class="bg-transparent p-8 rounded-lg mb-8">
-    <h2 class="text-lg font-semibold text-indigo-700"></h2>
-    <p class="text-sm text-gray-600"></p>
-</div>
 
-<div class="mt-10 mx-auto max-w-4xl"> 
-    <div class="flex justify-between items-center border-b-2 pb-2">
-        <h1 class="text-xl font-bold">Homepage</h1>
+<div class="min-h-screen bg-gray-100 py-10">
+    <!-- Box Container -->
+    <div class="bg-transparent p-5 rounded-lg mb-5">
+        <h2 class="text-lg font-semibold text-indigo-700"></h2>
+        <p class="text-sm text-gray-600"></p>
     </div>
-    {% if user and user.is_authenticated %}
-        <p class="text-center text-green-600 mt-4">User is authenticated</p>
-        {% if is_worker %}
-            <p class="text-center text-green-600 mt-4">User is a Worker</p>
-        {% else %}
-            <p class="text-center text-green-600 mt-4">User is not a Worker</p>
-        {% endif %}
-    {% else %}
-        <p class="text-center text-red-600 mt-4">User is not authenticated</p>
-    {% endif %}
+    
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Authentication Status Box -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class ="text-center text-2xl font-bold">Welcome to the Service Booking System</h2>
+            {% if user and user.is_authenticated %}
+                <p class="text-center text-green-600">User is authenticated</p>
+                {% if is_worker %}
+                    <p class="text-center text-green-600 mt-2">User is a Worker</p>
+                {% else %}
+                    <p class="text-center text-green-600 mt-2">User is not a Worker</p>
+                {% endif %}
+            {% else %}
+                <p class="text-center text-red-600">User is not authenticated</p>
+            {% endif %}
+        </div>
+
+        <!-- Search and Filter Section -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <form method="GET" class="flex gap-4">
+                <div class="flex-1">
+                    <input type="text" 
+                           name="search" 
+                           placeholder="Search categories or subcategories..."
+                           value="{{ search_query }}"
+                           class="w-full px-4 py-2 border rounded-lg">
+                </div>
+                <div class="w-64">
+                    <select name="category" class="w-full px-4 py-2 border rounded-lg">
+                        <option value="">All Categories</option>
+                        {% for category in categories %}
+                        <option value="{{ category.name }}" {% if selected_category == category.name %}selected{% endif %}>
+                            {{ category.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                    Search
+                </button>
+            </form>
+        </div>
+
+        <!-- Service Categories -->
+        {% for category in categories %}
+        <div class="bg-white rounded-lg shadow mb-6">
+            <div class="border-b px-6 py-4">
+                <h2 class="text-xl font-semibold">{{ category.name }}</h2>
+                <p class="text-gray-600 text-sm mt-1">{{ category.description }}</p>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {% for subcategory in subcategories %}
+                    {% if subcategory.category == category %}
+                    <a href="{% url 'services:category_services' subcategory.id %}" 
+                       class="block p-4 border rounded-lg hover:bg-gray-50 transition duration-150">
+                        <h3 class="font-medium text-lg">{{ subcategory.name }}</h3>
+                        <p class="text-gray-600 text-sm mt-1">{{ subcategory.description|truncatechars:100 }}</p>
+                    </a>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
 </div>
+
 {% endblock %}
