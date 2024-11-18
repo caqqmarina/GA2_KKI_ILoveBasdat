@@ -18,6 +18,7 @@ class User(AbstractUser):
     last_login = models.DateTimeField(null=True, blank=True)
     groups = models.ManyToManyField(Group, related_name='custom_user_set')
     user_permissions = models.ManyToManyField(Permission, related_name='custom_user_set')
+    mypay_balance = models.IntegerField(default=0)
 
 class Worker(User):
     bank_name = models.CharField(max_length=50, choices=[('GoPay', 'GoPay'), ('OVO', 'OVO'), ('Virtual Account BCA', 'Virtual Account BCA'), ('Virtual Account BNI', 'Virtual Account BNI'), ('Virtual Account Mandiri', 'Virtual Account Mandiri')])
@@ -66,3 +67,16 @@ class Promo(models.Model):
 
     def __str__(self):
         return self.code
+
+class TransactionCategory(models.Model):
+    category_id = models.IntegerField(primary_key=True)
+    category_name = models.CharField(max_length=50)
+
+class Transaction(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    amount = models.IntegerField()
+    date = models.DateTimeField(auto_now_add=True)
+    category = models.ForeignKey(TransactionCategory, on_delete=models.CASCADE)
+
+class TransferTransaction(Transaction):
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE)
