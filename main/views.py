@@ -5,6 +5,7 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from .forms import UserRegistrationForm, WorkerRegistrationForm
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import logout
 from .models import Voucher, Promo
 from django.http import HttpResponseRedirect
 from django.urls import reverse
@@ -41,7 +42,7 @@ def login_view(request):
     return render(request, 'login.html')
 
 def logout_user(request):
-    logout_user(request)
+    logout(request)
     return redirect('landing')
 
 def register_landing(request):
@@ -94,7 +95,7 @@ def register_worker(request):
 def discount_page(request):
     vouchers = Voucher.objects.all()
     promos = Promo.objects.all()
-    return render(request, 'main/discount.html', {'vouchers': vouchers, 'promos': promos})
+    return render(request, 'discount.html', {'vouchers': vouchers, 'promos': promos})
 
 def buy_voucher(request, voucher_id):
     if request.method == 'POST':
