@@ -1,4 +1,5 @@
 from django.urls import path
+from . import views
 from services.views import (
     subcategory,
     service_bookings,
@@ -13,4 +14,6 @@ urlpatterns = [
     path('subcategory/<int:subcategory_id>/testimonials/', testimonials, name='testimonials'),
     path('subcategory/<int:subcategory_id>/create-testimonial/', create_testimonial, name='create_testimonial'),
     path('bookings/', service_bookings, name='service_bookings'),
+    path('', views.service_order_list, name='service_order_list'),
+    path('update_status/<int:order_id>/', views.update_status, name='update_status'),
 ]

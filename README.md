@@ -82,7 +82,6 @@ python3 manage.py runserver
 min
 - subcategory services and service sessions
 - service booking
-- testimonials
 
 bryant
 - mypay
@@ -95,3 +94,5 @@ chi
 Cath
 - profile
 - logout
+- testimonials
+- service job and service job status

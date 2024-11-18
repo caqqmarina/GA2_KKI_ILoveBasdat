@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Orders</title>
+</head>
+<body>
+    <h1>Service Orders</h1>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Order Name</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td>{{ order.order_name }}</td>
+                <td>{{ order.get_status_display }}</td>
+                <td>
+                    {% if order.status == "waiting_for_departure" %}
+                    <a href="{% url 'update_status' order.id %}">Arrived at Location</a>
+                    {% elif order.status == "arrived_at_location" %}
+                    <a href="{% url 'update_status' order.id %}">Providing Service</a>
+                    {% elif order.status == "service_in_progress" %}
+                    <a href="{% url 'update_status' order.id %}">Service Completed</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
