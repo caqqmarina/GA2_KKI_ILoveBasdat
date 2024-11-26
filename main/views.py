@@ -263,7 +263,7 @@ def register_worker(request):
         form = WorkerRegistrationForm(request.POST)
         if form.is_valid():
             user = form.save(commit=False)
-            user.password = make_password(user.password)  
+            user.password = make_password(user.password)  # Hash the password
             user.save()
             messages.success(request, 'Registration successful. Please log in.')
             return redirect('login')
