@@ -42,19 +42,35 @@
     </div>
 </div>
 
+<!-- Modal for Transaction Form -->
+<div id="transactionModal" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center hidden">
+    <div class="bg-white p-6 rounded-lg w-96">
+        <h2 class="text-xl font-bold mb-4">New Transaction</h2>
+        <form method="POST" id="transactionForm">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <div class="flex justify-end mt-4">
+                <button type="button" class="bg-gray-500 text-white px-4 py-2 rounded mr-2" onclick="closeModal()">Cancel</button>
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Submit</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const transactButton = document.getElementById('transactButton');
-    const cancelBtn = document.getElementById('cancelBtn');
+    const transactionModal = document.getElementById('transactionModal');
 
     transactButton.addEventListener('click', function() {
-        alert("Hello!");
+        transactionModal.classList.remove('hidden');
     });
 
-    cancelBtn.addEventListener('click', function() {
-        profileInfo.classList.remove('hidden');
-        updateForm.classList.add('hidden');
-    });
+    function closeModal() {
+        transactionModal.classList.add('hidden');
+    }
+
+    window.closeModal = closeModal;
 });
 </script>
 
