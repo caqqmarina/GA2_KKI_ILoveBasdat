@@ -12,51 +12,156 @@ from django.urls import reverse
 from .models import User, Worker, Transaction
 from .forms import UserProfileUpdateForm, WorkerProfileUpdateForm
 from services.models import ServiceCategory, Subcategory
-from django.db.models import Q 
+from .forms import TransactionForm
+import psycopg2
+from django.conf import settings
+from django.shortcuts import render
+from django.contrib.auth.hashers import check_password
+from django.conf import settings
+from django.contrib.auth.hashers import make_password
+
+# def authenticate(request):
+#     # Check if user is authenticated using the phone number stored in session
+#     user_phone = request.session.get('user_phone')
+
+#     if not user_phone:
+#         messages.error(request, "You need to log in first.")
+#         return None, False  # No user and not authenticated
+
+#     user = User.objects.filter(phone_number=user_phone).first()
+#     if not user:
+#         messages.error(request, "User not found.")
+#         return None, False  # User not found, not authenticated
+
+#     # If user exists and is authenticated
+#     is_worker = Worker.objects.filter(user_ptr_id=user.id).exists()
+
+#     return user, is_worker 
 
 def authenticate(request):
-    # Check if user is authenticated using the phone number stored in session
     user_phone = request.session.get('user_phone')
-
+    
     if not user_phone:
         messages.error(request, "You need to log in first.")
-        return None, False  # No user and not authenticated
+        return None, False
 
-    user = User.objects.filter(phone_number=user_phone).first()
-    if not user:
-        messages.error(request, "User not found.")
-        return None, False  # User not found, not authenticated
-
-    # If user exists and is authenticated
-    is_worker = Worker.objects.filter(user_ptr_id=user.id).exists()
-
-    return user, is_worker 
+    try:
+        with psycopg2.connect(
+            dbname=settings.DATABASES['default']['NAME'],
+            user=settings.DATABASES['default']['USER'],
+            password=settings.DATABASES['default']['PASSWORD'],
+            host=settings.DATABASES['default']['HOST'],
+            port=settings.DATABASES['default']['PORT']
+        ) as conn:
+            with conn.cursor() as cursor:
+                # Check if user exists
+                cursor.execute("SELECT * FROM main_user WHERE phone_number = %s", (user_phone,))
+                user = cursor.fetchone()
+                
+                if not user:
+                    messages.error(request, "User not found.")
+                    return None, False
+                
+                # Check if user is a worker
+                cursor.execute("SELECT EXISTS(SELECT 1 FROM main_worker WHERE user_ptr_id = %s)", (user[0],))
+                is_worker = cursor.fetchone()[0]
+                
+                return user, is_worker
+                
+    except Exception as e:
+        print(f"Authentication error: {e}")
+        return None, False
+    
+# def homepage(request):
+#     user_phone = request.session.get('user_phone')
+#     is_authenticated = request.session.get('is_authenticated', False)
+#     is_worker = request.session.get('is_worker', False)
+    
+#     user = User.objects.filter(phone_number=user_phone).first() if user_phone else None
+    
+#     # Get search parameters
+#     search_query = request.GET.get('search', '').strip()
+#     category_filter = request.GET.get('category', '').strip()
+    
+#     # Get all categories
+#     categories = ServiceCategory.objects.all()
+    
+#     # Filter subcategories based on search
+#     if search_query:
+#         # Case-insensitive search that matches starting characters
+#         subcategories = Subcategory.objects.filter(
+#             Q(name__istartswith=search_query) | 
+#             Q(category__name__istartswith=search_query)
+#         )
+#     elif category_filter:
+#         subcategories = Subcategory.objects.filter(category__name=category_filter)
+#     else:
+#         subcategories = Subcategory.objects.all()
+    
+#     context = {
+#         'user': user,
+#         'is_worker': is_worker,
+#         'categories': categories,
+#         'subcategories': subcategories,
+#         'search_query': search_query,
+#         'selected_category': category_filter
+#     }
+    
+#     return render(request, 'homepage.html', context)
 
 def homepage(request):
     user_phone = request.session.get('user_phone')
     is_authenticated = request.session.get('is_authenticated', False)
     is_worker = request.session.get('is_worker', False)
     
-    user = User.objects.filter(phone_number=user_phone).first() if user_phone else None
+    user = None
+    if user_phone:
+        with psycopg2.connect(
+            dbname=settings.DATABASES['default']['NAME'],
+            user=settings.DATABASES['default']['USER'],
+            password=settings.DATABASES['default']['PASSWORD'],
+            host=settings.DATABASES['default']['HOST'],
+            port=settings.DATABASES['default']['PORT']
+        ) as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM main_user WHERE phone_number = %s", (user_phone,))
+                user = cursor.fetchone()
     
-    # Get search parameters
     search_query = request.GET.get('search', '').strip()
     category_filter = request.GET.get('category', '').strip()
     
-    # Get all categories
-    categories = ServiceCategory.objects.all()
+    categories = []
+    subcategories = []
     
-    # Filter subcategories based on search
-    if search_query:
-        # Case-insensitive search that matches starting characters
-        subcategories = Subcategory.objects.filter(
-            Q(name__istartswith=search_query) | 
-            Q(category__name__istartswith=search_query)
-        )
-    elif category_filter:
-        subcategories = Subcategory.objects.filter(category__name=category_filter)
-    else:
-        subcategories = Subcategory.objects.all()
+    with psycopg2.connect(
+        dbname=settings.DATABASES['default']['NAME'],
+        user=settings.DATABASES['default']['USER'],
+        password=settings.DATABASES['default']['PASSWORD'],
+        host=settings.DATABASES['default']['HOST'],
+        port=settings.DATABASES['default']['PORT']
+    ) as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT * FROM services_servicecategory")
+            categories = cursor.fetchall()
+            
+            if search_query:
+                cursor.execute("""
+                    SELECT * FROM services_subcategory
+                    WHERE name ILIKE %s OR category_id IN (
+                        SELECT id FROM services_servicecategory WHERE name ILIKE %s
+                    )
+                """, (f'{search_query}%', f'{search_query}%'))
+            elif category_filter:
+                cursor.execute("""
+                    SELECT * FROM services_subcategory
+                    WHERE category_id IN (
+                        SELECT id FROM services_servicecategory WHERE name = %s
+                    )
+                """, (category_filter,))
+            else:
+                cursor.execute("SELECT * FROM services_subcategory")
+            
+            subcategories = cursor.fetchall()
     
     context = {
         'user': user,
@@ -72,35 +177,81 @@ def homepage(request):
 def landing_page(request):
     return render(request, 'landing.html')
 
+# def login_view(request):
+#     if request.method == 'POST':
+#         phone = request.POST['phone']
+#         password = request.POST['password']
+        
+#         user = User.objects.filter(phone_number=phone).first()
+#         print("user", user)
+#         if user is not None:
+#             request.session['user_phone'] = user.phone_number
+#             request.session['is_authenticated'] = True
+#             request.session['is_worker'] = Worker.objects.filter(user_ptr_id=user.id).exists()
+#             print("is_worker", request.session['is_worker'])
+#             return redirect('homepage')
+#         else:
+#             messages.error(request, 'Invalid phone number or password.')
+    
+#     return render(request, 'login.html')
+
 def login_view(request):
     if request.method == 'POST':
         phone = request.POST['phone']
         password = request.POST['password']
         
-        user = User.objects.filter(phone_number=phone).first()
-        print("user", user)
-        if user is not None:
-            request.session['user_phone'] = user.phone_number
-            request.session['is_authenticated'] = True
-            request.session['is_worker'] = Worker.objects.filter(user_ptr_id=user.id).exists()
-            print("is_worker", request.session['is_worker'])
-            return redirect('homepage')
-        else:
-            messages.error(request, 'Invalid phone number or password.')
+        try:
+            with psycopg2.connect(
+                dbname=settings.DATABASES['default']['NAME'],
+                user=settings.DATABASES['default']['USER'],
+                password=settings.DATABASES['default']['PASSWORD'],
+                host=settings.DATABASES['default']['HOST'],
+                port=settings.DATABASES['default']['PORT']
+            ) as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute("SELECT * FROM main_user WHERE phone_number = %s", (phone,))
+                    user = cursor.fetchone()
+                    
+                    if user and check_password(password, user[2]):  # Assuming password is at index 2
+                        # Set session data
+                        request.session['user_phone'] = phone
+                        request.session['is_authenticated'] = True
+                        cursor.execute("SELECT EXISTS(SELECT 1 FROM main_worker WHERE user_ptr_id = %s)", (user[0],))
+                        request.session['is_worker'] = cursor.fetchone()[0]
+                        return redirect('homepage')
+                    else:
+                        messages.error(request, 'Invalid phone number or password.')
+        except Exception as e:
+            print(f"Login error: {e}")
+            messages.error(request, 'An error occurred during login.')
     
     return render(request, 'login.html')
 
 def logout_user(request):
+    request.session.flush()
     return redirect('landing')
 
 def register_landing(request):
     return render(request, 'register_landing.html')
 
+# def register_user(request):
+#     if request.method == 'POST':
+#         form = UserRegistrationForm(request.POST)
+#         if form.is_valid():
+#             form.save()
+#             messages.success(request, 'Registration successful. Please log in.')
+#             return redirect('login')
+#     else:
+#         form = UserRegistrationForm()
+#     return render(request, 'register_user.html', {'form': form})
+
 def register_user(request):
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
         if form.is_valid():
-            form.save()
+            user = form.save(commit=False)
+            user.password = make_password(user.password)  # Hash the password
+            user.save()
             messages.success(request, 'Registration successful. Please log in.')
             return redirect('login')
     else:
@@ -111,12 +262,25 @@ def register_worker(request):
     if request.method == 'POST':
         form = WorkerRegistrationForm(request.POST)
         if form.is_valid():
-            form.save()
+            user = form.save(commit=False)
+            user.password = make_password(user.password)  
+            user.save()
             messages.success(request, 'Registration successful. Please log in.')
             return redirect('login')
     else:
         form = WorkerRegistrationForm()
     return render(request, 'register_worker.html', {'form': form})
+
+# def register_worker(request):
+#     if request.method == 'POST':
+#         form = WorkerRegistrationForm(request.POST)
+#         if form.is_valid():
+#             form.save()
+#             messages.success(request, 'Registration successful. Please log in.')
+#             return redirect('login')
+#     else:
+#         form = WorkerRegistrationForm()
+#     return render(request, 'register_worker.html', {'form': form})
 
 # def user_profile(request):
 #     profile = get_object_or_404(UserProfile, user=request.user)
@@ -221,55 +385,136 @@ def buy_voucher(request, voucher_id):
     messages.error(request, 'Invalid request.')
     return HttpResponseRedirect(reverse('discount'))
 
-def profile_view(request):
-    user = User.objects.filter(phone_number=request.session.get('user_phone')).first()
-    if not user:
-        return redirect('login')
+# def profile_view(request):
+#     user = User.objects.filter(phone_number=request.session.get('user_phone')).first()
+#     if not user:
+#         return redirect('login')
 
-    is_worker = Worker.objects.filter(user_ptr_id=user.id).exists()
+#     is_worker = Worker.objects.filter(user_ptr_id=user.id).exists()
 
-    if request.method == 'POST':
-        if is_worker:
-            form = WorkerProfileUpdateForm(request.POST, instance=user.worker)
-        else:
-            form = UserProfileUpdateForm(request.POST, instance=user)
+#     if request.method == 'POST':
+#         if is_worker:
+#             form = WorkerProfileUpdateForm(request.POST, instance=user.worker)
+#         else:
+#             form = UserProfileUpdateForm(request.POST, instance=user)
         
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Profile updated successfully.')
-            return redirect('profile')
-    else:
-        if is_worker:
-            form = WorkerProfileUpdateForm(instance=user.worker)
-        else: 
-            form = UserProfileUpdateForm(instance=user)
+#         if form.is_valid():
+#             form.save()
+#             messages.success(request, 'Profile updated successfully.')
+#             return redirect('profile')
+#     else:
+#         if is_worker:
+#             form = WorkerProfileUpdateForm(instance=user.worker)
+#         else: 
+#             form = UserProfileUpdateForm(instance=user)
 
-    context = {
-        'user': user,
-        'is_worker': is_worker,
-        'form': form,
-        # Placeholder values for now
-        'level': 'Bronze',
-        'mypay_balance': user.mypay_balance,
-        'rate': 0.00,
-        'completed_orders': 0,
-        'job_categories': []
-    }
+#     context = {
+#         'user': user,
+#         'is_worker': is_worker,
+#         'form': form,
+#         # Placeholder values for now
+#         'level': 'Bronze',
+#         'mypay_balance': user.mypay_balance,
+#         'rate': 0.00,
+#         'completed_orders': 0,
+#         'job_categories': []
+#     }
 
-    return render(request, 'profile.html', context)
+#     return render(request, 'profile.html', context)
+
+def profile_view(request):
+    user_phone = request.session.get('user_phone')
+    is_worker = request.session.get('is_worker', False)
+
+    if not user_phone:
+        messages.error(request, "Please log in first")
+        return redirect('login')
+    
+    try:
+        with psycopg2.connect(
+            dbname=settings.DATABASES['default']['NAME'],
+            user=settings.DATABASES['default']['USER'],
+            password=settings.DATABASES['default']['PASSWORD'],
+            host=settings.DATABASES['default']['HOST'],
+            port=settings.DATABASES['default']['PORT']
+        ) as conn:
+            with conn.cursor() as cursor:
+                # Get user data
+                cursor.execute("""
+                    SELECT id, name, password, phone_number, sex, birth_date, 
+                           address, mypay_balance 
+                    FROM main_user 
+                    WHERE phone_number = %s
+                """, (user_phone,))
+                user_data = cursor.fetchone()
+                
+                if not user_data:
+                    messages.error(request, 'User data not found.')
+                    return redirect('homepage')
+
+                worker_data = None
+                if is_worker:
+                    cursor.execute("""
+                        SELECT bank_name, account_number, npwp, 
+                               completed_orders_count, job_categories, image_url
+                        FROM main_worker 
+                        WHERE user_ptr_id = %s
+                    """, (user_data[0],))
+                    worker_data = cursor.fetchone()
+
+                context = {
+                    'user': {
+                        'id': user_data[0],
+                        'name': user_data[1],
+                        'phone_number': user_data[3],
+                        'sex': user_data[4],
+                        'birth_date': user_data[5],
+                        'address': user_data[6],
+                        'mypay_balance': user_data[7]
+                    },
+                    'is_worker': is_worker,
+                    'level': 'Bronze'  # You can add logic for level calculation
+                }
+
+                if worker_data:
+                    context['user'].update({
+                        'bank_name': worker_data[0],
+                        'account_number': worker_data[1],
+                        'npwp': worker_data[2],
+                        'rate': worker_data[3],
+                        'completed_orders': worker_data[4],
+                        'job_categories': worker_data[5].split(',') if worker_data[5] else [],
+                        'image_url': worker_data[6]
+                    })
+
+                return render(request, 'profile.html', context)
+
+    except Exception as e:
+        print(f"Profile view error: {e}")
+        messages.error(request, 'Error loading profile.')
+        return redirect('homepage')
 
 def mypay(request):
-    user = User.objects.filter(phone_number=request.session.get('user_phone')).first()
-    if not user:
-        return redirect('login')
+    # Dummy user data
+    user = {
+        'phone_number': '1234567890',
+        'mypay_balance': 1000,
+    }
 
-    is_worker = Worker.objects.filter(user_ptr_id=user.id).exists()
+    # Dummy transactions data
+    transactions = [
+        {'amount': 100, 'date': '2024-11-18', 'category': 'TopUp'},
+        {'amount': 200, 'date': '2024-11-17', 'category': 'Service Payment'},
+    ]
+
+    form = TransactionForm()
 
     context = {
         'user': user,
-        'is_worker': is_worker,
-        'mypay_balance': user.mypay_balance,
-        'transactions': Transaction.objects.filter(user=user.id).order_by('-date'),
+        'is_worker': False,
+        'mypay_balance': user['mypay_balance'],
+        'transactions': transactions,
+        'form': form,
     }
 
     return render(request, 'mypay.html', context)
