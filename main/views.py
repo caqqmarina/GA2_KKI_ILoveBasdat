@@ -13,6 +13,7 @@ from .models import User, Worker, Transaction
 from .forms import UserProfileUpdateForm, WorkerProfileUpdateForm
 from services.models import ServiceCategory, Subcategory
 from django.db.models import Q 
+from .forms import TransactionForm
 
 def authenticate(request):
     # Check if user is authenticated using the phone number stored in session
@@ -259,17 +260,26 @@ def profile_view(request):
     return render(request, 'profile.html', context)
 
 def mypay(request):
-    user = User.objects.filter(phone_number=request.session.get('user_phone')).first()
-    if not user:
-        return redirect('login')
+    # Dummy user data
+    user = {
+        'phone_number': '1234567890',
+        'mypay_balance': 1000,
+    }
 
-    is_worker = Worker.objects.filter(user_ptr_id=user.id).exists()
+    # Dummy transactions data
+    transactions = [
+        {'amount': 100, 'date': '2024-11-18', 'category': 'TopUp'},
+        {'amount': 200, 'date': '2024-11-17', 'category': 'Service Payment'},
+    ]
+
+    form = TransactionForm()
 
     context = {
         'user': user,
-        'is_worker': is_worker,
-        'mypay_balance': user.mypay_balance,
-        'transactions': Transaction.objects.filter(user=user.id).order_by('-date'),
+        'is_worker': False,
+        'mypay_balance': user['mypay_balance'],
+        'transactions': transactions,
+        'form': form,
     }
 
     return render(request, 'mypay.html', context)
