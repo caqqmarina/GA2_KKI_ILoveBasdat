@@ -276,9 +276,9 @@ def register_user(request):
                 ) as conn:
                     with conn.cursor() as cursor:
                         cursor.execute("""
-                            INSERT INTO main_user (name, password, sex, phone_number, birth_date, address, date_joined, email, first_name, is_active, is_staff, is_superuser, last_name, username)
+                            INSERT INTO main_user (name, password, sex, phone_number, birth_date, address, date_joined, is_active, is_staff, is_superuser,)
                             VALUES (%s, %s, %s, %s, %s, %s, NOW(), %s, %s, TRUE, FALSE, FALSE, %s, %s)
-                        """, (data['name'], hashed_password, data['sex'], data['phone_number'], data['birth_date'], data['address'], data['email'], data['first_name'], data['last_name'], data['username']))
+                        """, (data['name'], hashed_password, data['sex'], data['phone_number'], data['birth_date'], data['address'], ))
                         conn.commit()
                 messages.success(request, 'Registration successful. Please log in.')
                 return redirect('login')
