@@ -48,6 +48,7 @@ def authenticate(request):
                 cursor.execute("SELECT EXISTS(SELECT 1 FROM main_worker WHERE user_ptr_id = %s)", (user[0],))
                 is_worker = cursor.fetchone()[0]
                 return user, is_worker
+            
     except Exception as e:
         print(f"Authentication error: {e}")
         messages.error(request, "An error occurred during authentication.")
@@ -55,6 +56,7 @@ def authenticate(request):
 
 def subcategory(request, subcategory_id=None):
     user, is_worker = authenticate(request)
+    print(user, is_worker)
     if not user:  # If the user is not authenticated or doesn't exist, redirect to login
         return redirect('main:login')
 
@@ -79,7 +81,7 @@ def subcategory(request, subcategory_id=None):
                 sessions = cursor.fetchall()
 
                 # Fetch payment methods
-                cursor.execute("SELECT id, bank_name FROM main_worker")
+                cursor.execute("SELECT user_ptr_id, bank_name FROM main_worker")
                 payment_methods = dict(cursor.fetchall())
 
                 # Handle booking (store the booked session in the session)
