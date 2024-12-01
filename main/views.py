@@ -442,6 +442,7 @@ def buy_voucher(request, voucher_id):
 
 #     return render(request, 'profile.html', context)
 
+
 def profile_view(request):
     user_phone = request.session.get('user_phone')
     is_worker = request.session.get('is_worker', False)
@@ -506,6 +507,26 @@ def profile_view(request):
                         'job_categories': worker_data[5].split(',') if worker_data[5] else [],
                         'image_url': worker_data[6]
                     })
+
+                if request.method == 'POST':
+                    # Handle form submission
+                    name = request.POST.get('name')
+                    password = request.POST.get('password')
+                    sex = request.POST.get('sex')
+                    phone_number = request.POST.get('phone_number')
+                    birth_date = request.POST.get('birth_date')
+                    address = request.POST.get('address')
+
+                    hashed_password = make_password(password) if password else user_data[2]
+
+                    cursor.execute("""
+                        UPDATE main_user
+                        SET name = %s, password = %s, sex = %s, phone_number = %s, birth_date = %s, address = %s
+                        WHERE id = %s
+                    """, (name, hashed_password, sex, phone_number, birth_date, address, user_data[0]))
+                    conn.commit()
+                    messages.success(request, 'Profile updated successfully.')
+                    return redirect('profile')
 
                 return render(request, 'profile.html', context)
 
