@@ -6,13 +6,8 @@ from django.contrib import messages
 from .forms import UserRegistrationForm, WorkerRegistrationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
-from .models import Voucher, Promo
 from django.http import HttpResponseRedirect
 from django.urls import reverse
-from .models import User, Worker, Transaction
-from .forms import UserProfileUpdateForm, WorkerProfileUpdateForm
-from services.models import ServiceCategory, Subcategory
-from .forms import TransactionForm
 import psycopg2
 from django.conf import settings
 from django.shortcuts import render
@@ -195,35 +190,39 @@ def landing_page(request):
     
 #     return render(request, 'login.html')
 
-def login_view(request):
+def login_user(request):
     if request.method == 'POST':
         phone = request.POST['phone']
         password = request.POST['password']
         
         try:
-            with psycopg2.connect(
+            conn = psycopg2.connect(
                 dbname=settings.DATABASES['default']['NAME'],
                 user=settings.DATABASES['default']['USER'],
                 password=settings.DATABASES['default']['PASSWORD'],
                 host=settings.DATABASES['default']['HOST'],
                 port=settings.DATABASES['default']['PORT']
-            ) as conn:
-                with conn.cursor() as cursor:
-                    cursor.execute("SELECT * FROM main_user WHERE phone_number = %s", (phone,))
-                    user = cursor.fetchone()
-                    
-                    if user and check_password(password, user[2]):  # Assuming password is at index 2
-                        # Set session data
-                        request.session['user_phone'] = phone
-                        request.session['is_authenticated'] = True
-                        cursor.execute("SELECT EXISTS(SELECT 1 FROM main_worker WHERE user_ptr_id = %s)", (user[0],))
-                        request.session['is_worker'] = cursor.fetchone()[0]
-                        return redirect('homepage')
-                    else:
-                        messages.error(request, 'Invalid phone number or password.')
+            )
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM main_user WHERE phone_number = %s", (phone,))
+            user = cursor.fetchone()
+            
+            if user and check_password(password, user[2]):  # Assuming password is at index 2
+                request.session['user_phone'] = phone
+                request.session['is_authenticated'] = True
+                cursor.execute("SELECT EXISTS(SELECT 1 FROM main_worker WHERE user_ptr_id = %s)", (user[0],))
+                request.session['is_worker'] = cursor.fetchone()[0]
+                return redirect('homepage')
+            else:
+                messages.error(request, 'Invalid phone number or password.')
         except Exception as e:
             print(f"Login error: {e}")
             messages.error(request, 'An error occurred during login.')
+        finally:
+            if 'cursor' in locals():
+                cursor.close()
+            if 'conn' in locals():
+                conn.close()
     
     return render(request, 'login.html')
 
@@ -234,26 +233,58 @@ def logout_user(request):
 def register_landing(request):
     return render(request, 'register_landing.html')
 
+
 # def register_user(request):
 #     if request.method == 'POST':
 #         form = UserRegistrationForm(request.POST)
 #         if form.is_valid():
-#             form.save()
+#             user = form.save(commit=False)
+#             user.password = make_password(user.password)  # Hash the password
+#             user.save()
 #             messages.success(request, 'Registration successful. Please log in.')
 #             return redirect('login')
 #     else:
 #         form = UserRegistrationForm()
 #     return render(request, 'register_user.html', {'form': form})
 
+# def register_worker(request):
+#     if request.method == 'POST':
+#         form = WorkerRegistrationForm(request.POST)
+#         if form.is_valid():
+#             user = form.save(commit=False)
+#             user.password = make_password(user.password)  # Hash the password
+#             user.save()
+#             messages.success(request, 'Registration successful. Please log in.')
+#             return redirect('login')
+#     else:
+#         form = WorkerRegistrationForm()
+#     return render(request, 'register_worker.html', {'form': form})
+
 def register_user(request):
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
         if form.is_valid():
-            user = form.save(commit=False)
-            user.password = make_password(user.password)  # Hash the password
-            user.save()
-            messages.success(request, 'Registration successful. Please log in.')
-            return redirect('login')
+            data = form.cleaned_data
+            hashed_password = make_password(data['password'])
+            try:
+                with psycopg2.connect(
+                    dbname=settings.DATABASES['default']['NAME'],
+                    user=settings.DATABASES['default']['USER'],
+                    password=settings.DATABASES['default']['PASSWORD'],
+                    host=settings.DATABASES['default']['HOST'],
+                    port=settings.DATABASES['default']['PORT']
+                ) as conn:
+                    with conn.cursor() as cursor:
+                        cursor.execute("""
+                            INSERT INTO main_user (name, password, sex, phone_number, birth_date, address, date_joined, email, first_name, is_active, is_staff, is_superuser, last_name, username)
+                            VALUES (%s, %s, %s, %s, %s, %s, NOW(), %s, %s, TRUE, FALSE, FALSE, %s, %s)
+                        """, (data['name'], hashed_password, data['sex'], data['phone_number'], data['birth_date'], data['address'], data['email'], data['first_name'], data['last_name'], data['username']))
+                        conn.commit()
+                messages.success(request, 'Registration successful. Please log in.')
+                return redirect('login')
+            except Exception as e:
+                print(f"Registration error: {e}")
+                messages.error(request, 'An error occurred during registration.')
     else:
         form = UserRegistrationForm()
     return render(request, 'register_user.html', {'form': form})
@@ -262,47 +293,36 @@ def register_worker(request):
     if request.method == 'POST':
         form = WorkerRegistrationForm(request.POST)
         if form.is_valid():
-            user = form.save(commit=False)
-            user.password = make_password(user.password)  # Hash the password
-            user.save()
-            messages.success(request, 'Registration successful. Please log in.')
-            return redirect('login')
+            data = form.cleaned_data
+            hashed_password = make_password(data['password'])
+            try:
+                with psycopg2.connect(
+                    dbname=settings.DATABASES['default']['NAME'],
+                    user=settings.DATABASES['default']['USER'],
+                    password=settings.DATABASES['default']['PASSWORD'],
+                    host=settings.DATABASES['default']['HOST'],
+                    port=settings.DATABASES['default']['PORT']
+                ) as conn:
+                    with conn.cursor() as cursor:
+                        cursor.execute("""
+                            INSERT INTO main_user (name, password, sex, phone_number, birth_date, address, date_joined, email, first_name, is_active, is_staff, is_superuser, last_name, username)
+                            VALUES (%s, %s, %s, %s, %s, %s, NOW(), %s, %s, TRUE, FALSE, FALSE, %s, %s)
+                            RETURNING id
+                        """, (data['name'], hashed_password, data['sex'], data['phone_number'], data['birth_date'], data['address'], data['email'], data['first_name'], data['last_name'], data['username']))
+                        user_id = cursor.fetchone()[0]
+                        cursor.execute("""
+                            INSERT INTO main_worker (user_ptr_id, bank_name, account_number, npwp, image_url)
+                            VALUES (%s, %s, %s, %s, %s)
+                        """, (user_id, data['bank_name'], data['account_number'], data['npwp'], data['image_url']))
+                        conn.commit()
+                messages.success(request, 'Registration successful. Please log in.')
+                return redirect('login')
+            except Exception as e:
+                print(f"Registration error: {e}")
+                messages.error(request, 'An error occurred during registration.')
     else:
         form = WorkerRegistrationForm()
     return render(request, 'register_worker.html', {'form': form})
-
-# def register_worker(request):
-#     if request.method == 'POST':
-#         form = WorkerRegistrationForm(request.POST)
-#         if form.is_valid():
-#             form.save()
-#             messages.success(request, 'Registration successful. Please log in.')
-#             return redirect('login')
-#     else:
-#         form = WorkerRegistrationForm()
-#     return render(request, 'register_worker.html', {'form': form})
-
-# def user_profile(request):
-#     profile = get_object_or_404(UserProfile, user=request.user)
-#     if request.method == 'POST':
-#         form = UserProfileForm(request.POST, instance=profile)
-#         if form.is_valid():
-#             form.save()
-#             return redirect('user_profile')
-#     else:
-#         form = UserProfileForm(instance=profile)
-#     return render(request, 'user_profile.html', {'form': form, 'profile': profile})
-
-# def worker_profile(request):
-#     profile = get_object_or_404(WorkerProfile, user=request.user)
-#     if request.method == 'POST':
-#         form = WorkerProfileForm(request.POST, instance=profile)
-#         if form.is_valid():
-#             form.save()
-#             return redirect('worker_profile')
-#     else:
-#         form = WorkerProfileForm(instance=profile)
-#     return render(request, 'worker_profile.html', {'form': form, 'profile': profile})
 
 def discount_page(request):
     user, is_worker = authenticate(request)  # Check authentication
