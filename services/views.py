@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
+from .forms import TestimonialForm
 from django.contrib import messages
 from django.http import JsonResponse
 from django.conf import settings
@@ -56,9 +57,8 @@ def authenticate(request):
 
 def subcategory(request, subcategory_id=None):
     user, is_worker = authenticate(request)
-    print(user, is_worker)
-    if not user:  # If the user is not authenticated or doesn't exist, redirect to login
-        return redirect('main:login')
+    if not user:
+        return redirect('login')
 
     try:
         with psycopg2.connect(
@@ -70,50 +70,62 @@ def subcategory(request, subcategory_id=None):
         ) as conn:
             with conn.cursor() as cursor:
                 # Fetch subcategory data
-                cursor.execute("SELECT id, name, description, category_id FROM services_subcategory WHERE id = %s", (subcategory_id,))
+                cursor.execute("""
+                    SELECT id, name, description, category_id 
+                    FROM services_subcategory 
+                    WHERE id = %s
+                """, (subcategory_id,))
                 subcategory = cursor.fetchone()
+                
                 if not subcategory:
                     messages.error(request, "Subcategory not found.")
                     return redirect('services:service_order_list')
 
                 # Fetch related sessions
-                cursor.execute("SELECT id, session, price FROM services_servicesession WHERE subcategory_id = %s", (subcategory_id,))
+                cursor.execute("""
+                    SELECT id, session, price 
+                    FROM services_servicesession 
+                    WHERE subcategory_id = %s
+                """, (subcategory_id,))
                 sessions = cursor.fetchall()
+
+                # Handle POST request for booking
+                if request.method == 'POST' and 'book_service' in request.POST:
+                    session_id = request.POST.get('session_id')
+                    if session_id:
+                        # Get session price from fetched sessions
+                        session_price = next(
+                            (session[2] for session in sessions if str(session[0]) == session_id),
+                            None
+                        )
+                        
+                        if session_price:
+                            # Create worker service order
+                            cursor.execute("""
+                                INSERT INTO services_workerserviceorder 
+                                (subcategory_id, session, price, status)
+                                VALUES (%s, %s, %s, 'looking_for_worker')
+                                RETURNING id
+                            """, (subcategory_id, session_id, session_price))
+                            conn.commit()
+
+                            # Store in session
+                            booked_sessions = request.session.get('booked_sessions', [])
+                            if session_id not in booked_sessions:
+                                booked_sessions.append(session_id)
+                                request.session['booked_sessions'] = booked_sessions
+                                request.session.modified = True
+                            
+                            return redirect('services:testimonials', subcategory_id=subcategory_id)
 
                 # Fetch payment methods
                 cursor.execute("SELECT user_ptr_id, bank_name FROM main_worker")
                 payment_methods = dict(cursor.fetchall())
 
-                # Handle booking (store the booked session in the session)
-                if request.method == 'POST' and 'book_service' in request.POST:
-                    session_id = request.POST.get('session_id')
-                    if session_id:
-                        booked_sessions = request.session.get('booked_sessions', [])
-                        if session_id not in booked_sessions:
-                            booked_sessions.append(session_id)
-                        request.session['booked_sessions'] = booked_sessions
-
-                        # Create a new WorkerServiceOrder and add it to all workers
-                        cursor.execute("""
-                            INSERT INTO services_workerserviceorder (subcategory_id, session, price, status)
-                            VALUES (%s, %s, %s, 'looking_for_worker')
-                            RETURNING id
-                        """, (subcategory_id, session_id, 100.00))  # Example price, replace with actual price
-                        new_order_id = cursor.fetchone()[0]
-
-                        cursor.execute("SELECT id FROM main_worker")
-                        workers = cursor.fetchall()
-                        for worker in workers:
-                            cursor.execute("""
-                                INSERT INTO services_workerserviceorder_workers (workerserviceorder_id, worker_id)
-                                VALUES (%s, %s)
-                            """, (new_order_id, worker[0]))
-                        conn.commit()
-
     except Exception as e:
         print(f"Error handling subcategory: {e}")
         messages.error(request, 'An error occurred while handling the subcategory.')
-        return redirect('services:service_order_list')
+        return redirect('homepage')
 
     context = {
         'subcategory': {
@@ -177,13 +189,14 @@ def testimonials(request, subcategory_id):
         print(f"Error fetching testimonials: {e}")
         messages.error(request, 'An error occurred while fetching testimonials.')
         return redirect('services:category_services', subcategory_id=subcategory_id)
-    
+
 def service_bookings(request):
     user, is_worker = authenticate(request)
-    if not user:
+    if not user:  # Redirect to login if user is not authenticated
         return redirect('login')
-
+    
     try:
+        # Establish database connection
         with psycopg2.connect(
             dbname=settings.DATABASES['default']['NAME'],
             user=settings.DATABASES['default']['USER'],
@@ -192,7 +205,8 @@ def service_bookings(request):
             port=settings.DATABASES['default']['PORT']
         ) as conn:
             with conn.cursor() as cursor:
-                cursor.execute("SELECT * FROM services_servicesession")
+                # Fetch all available sessions from the database
+                cursor.execute("SELECT id, session, price, subcategory_id FROM services_servicesession")
                 sessions = cursor.fetchall()
 
                 if request.method == "POST":
@@ -203,20 +217,33 @@ def service_bookings(request):
                         messages.error(request, "No session selected.")
                         return redirect('services:category_services', subcategory_id=subcategory_id)
 
+                    # Initialize session variable for booked sessions if not already present
                     if 'booked_sessions' not in request.session:
                         request.session['booked_sessions'] = []
 
+                    # Add session_id to booked_sessions list if not already added
                     if session_id not in request.session['booked_sessions']:
                         request.session['booked_sessions'].append(session_id)
                         request.session.modified = True
 
+                    # Store subcategory_id in session for future use
                     request.session['subcategory_id'] = subcategory_id
+                    
+                    # Redirect to service bookings page
                     return redirect('services:service_bookings')
 
+                # Get the booked sessions' IDs from the session
                 booked_session_ids = request.session.get('booked_sessions', [])
-                cursor.execute("SELECT * FROM services_servicesession WHERE id IN %s", (tuple(booked_session_ids),))
-                booked_sessions = cursor.fetchall()
-                unique_subcategories = {session[3] for session in booked_sessions}
+                
+                if booked_session_ids:
+                    # Retrieve booked sessions based on stored session IDs
+                    cursor.execute("SELECT id, session, price, subcategory_id FROM services_servicesession WHERE id IN %s", (tuple(booked_session_ids),))
+                    booked_sessions = cursor.fetchall()
+                else:
+                    booked_sessions = []
+
+                # Get unique subcategories from the booked sessions
+                unique_subcategories = {session[3] for session in booked_sessions}  # Subcategory ID is the 4th column (index 3)
 
         context = {
             'user': user,
@@ -224,7 +251,10 @@ def service_bookings(request):
             'booked_sessions': booked_sessions,
             'unique_subcategories': unique_subcategories,
         }
+        
+        # Render the page with the context
         return render(request, 'service_booking.html', context)
+    
     except Exception as e:
         print(f"Error handling service bookings: {e}")
         messages.error(request, 'An error occurred while handling service bookings.')
