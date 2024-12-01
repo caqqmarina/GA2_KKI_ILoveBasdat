@@ -206,7 +206,7 @@ def login_user(request):
             cursor = conn.cursor()
             cursor.execute("SELECT * FROM main_user WHERE phone_number = %s", (phone,))
             user = cursor.fetchone()
-            
+
             if user and check_password(password, user[2]):  # Assuming password is at index 2
                 request.session['user_phone'] = phone
                 request.session['is_authenticated'] = True
