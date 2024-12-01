@@ -15,23 +15,6 @@ from django.contrib.auth.hashers import check_password
 from django.conf import settings
 from django.contrib.auth.hashers import make_password
 
-# def authenticate(request):
-#     # Check if user is authenticated using the phone number stored in session
-#     user_phone = request.session.get('user_phone')
-
-#     if not user_phone:
-#         messages.error(request, "You need to log in first.")
-#         return None, False  # No user and not authenticated
-
-#     user = User.objects.filter(phone_number=user_phone).first()
-#     if not user:
-#         messages.error(request, "User not found.")
-#         return None, False  # User not found, not authenticated
-
-#     # If user exists and is authenticated
-#     is_worker = Worker.objects.filter(user_ptr_id=user.id).exists()
-
-#     return user, is_worker 
 
 def authenticate(request):
     user_phone = request.session.get('user_phone')
@@ -67,42 +50,6 @@ def authenticate(request):
         print(f"Authentication error: {e}")
         return None, False
     
-# def homepage(request):
-#     user_phone = request.session.get('user_phone')
-#     is_authenticated = request.session.get('is_authenticated', False)
-#     is_worker = request.session.get('is_worker', False)
-    
-#     user = User.objects.filter(phone_number=user_phone).first() if user_phone else None
-    
-#     # Get search parameters
-#     search_query = request.GET.get('search', '').strip()
-#     category_filter = request.GET.get('category', '').strip()
-    
-#     # Get all categories
-#     categories = ServiceCategory.objects.all()
-    
-#     # Filter subcategories based on search
-#     if search_query:
-#         # Case-insensitive search that matches starting characters
-#         subcategories = Subcategory.objects.filter(
-#             Q(name__istartswith=search_query) | 
-#             Q(category__name__istartswith=search_query)
-#         )
-#     elif category_filter:
-#         subcategories = Subcategory.objects.filter(category__name=category_filter)
-#     else:
-#         subcategories = Subcategory.objects.all()
-    
-#     context = {
-#         'user': user,
-#         'is_worker': is_worker,
-#         'categories': categories,
-#         'subcategories': subcategories,
-#         'search_query': search_query,
-#         'selected_category': category_filter
-#     }
-    
-#     return render(request, 'homepage.html', context)
 
 def homepage(request):
     user_phone = request.session.get('user_phone')
@@ -125,9 +72,6 @@ def homepage(request):
     search_query = request.GET.get('search', '').strip()
     category_filter = request.GET.get('category', '').strip()
     
-    categories = []
-    subcategories = []
-    
     with psycopg2.connect(
         dbname=settings.DATABASES['default']['NAME'],
         user=settings.DATABASES['default']['USER'],
@@ -138,6 +82,17 @@ def homepage(request):
         with conn.cursor() as cursor:
             cursor.execute("SELECT * FROM services_servicecategory")
             categories = cursor.fetchall()
+
+            category_dict = {}
+            for category in categories:
+                category_id = category[0]
+                category_name = category[1]
+                category_description = category[2]
+                category_dict[category_id] = {
+                    'name': category_name,
+                    'description': category_description,
+                    'subcategories': []
+                }
             
             if search_query:
                 cursor.execute("""
@@ -157,6 +112,21 @@ def homepage(request):
                 cursor.execute("SELECT * FROM services_subcategory")
             
             subcategories = cursor.fetchall()
+
+            for subcategory in subcategories:
+                subcategory_id = subcategory[0]
+                subcategory_name = subcategory[1]
+                subcategory_description = subcategory[2]
+                category_id = subcategory[3]
+
+                # Add subcategory to the corresponding category
+                if category_id in category_dict:
+                    category_dict[category_id]['subcategories'].append({
+                        'id': subcategory_id,
+                        'name': subcategory_name,
+                        'description': subcategory_description
+                    })
+                    print(category_dict)
     
     context = {
         'user': user,
@@ -164,31 +134,15 @@ def homepage(request):
         'categories': categories,
         'subcategories': subcategories,
         'search_query': search_query,
-        'selected_category': category_filter
+        'selected_category': category_filter,
+        'categories': category_dict
     }
     
-    return render(request, 'homepage.html', context)
+    return render(request, 'Homepage.html', context)
 
 def landing_page(request):
     return render(request, 'landing.html')
 
-# def login_view(request):
-#     if request.method == 'POST':
-#         phone = request.POST['phone']
-#         password = request.POST['password']
-        
-#         user = User.objects.filter(phone_number=phone).first()
-#         print("user", user)
-#         if user is not None:
-#             request.session['user_phone'] = user.phone_number
-#             request.session['is_authenticated'] = True
-#             request.session['is_worker'] = Worker.objects.filter(user_ptr_id=user.id).exists()
-#             print("is_worker", request.session['is_worker'])
-#             return redirect('homepage')
-#         else:
-#             messages.error(request, 'Invalid phone number or password.')
-    
-#     return render(request, 'login.html')
 
 def login_user(request):
     if request.method == 'POST':

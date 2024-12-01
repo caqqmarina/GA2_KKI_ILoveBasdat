@@ -35,11 +35,16 @@
                     <p class="flex-1 text-center">${{ session.price }}</p>
                 </div>
                 {% if not is_worker %}
+                <!-- Button to trigger modal in subcategory.html -->
                 <form method="POST" action="{% url 'services:service_bookings' %}">
                     {% csrf_token %}
-                    <input type="hidden" name="subcategory_id" value="{{ subcategory.id }}">
-                    <input type="hidden" name="session_id" value="{{ session.id }}">
-                    <button type="submit" class="px-6 py-2 bg-blue-500 text-white font-bold rounded hover:bg-blue-600 book-service-btn">Book Service</button>
+                    <!-- Button to trigger modal in subcategory.html -->
+                    <button type="button" 
+                    class="px-6 py-2 bg-blue-500 text-white font-bold rounded hover:bg-blue-600 book-service-btn"
+                    data-session-id="{{ session.id }}"
+                    data-subcategory-id="{{ subcategory.id }}">
+                    Book Service
+                    </button>
                 </form>
                 {% endif %}
             </div>
@@ -48,11 +53,14 @@
 
         <!-- Modal Form for Booking Services -->
         <div id="bookingModal"
-            class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-100">
-            <div class="max-w-2xl w-full mx-auto p-6 bg-white" , style="height: 480px; border-radius: 1cm;">
+        class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-100">
+            <div class="max-w-2xl w-full mx-auto p-6 bg-white" style="height: 480px; border-radius: 1cm;">
                 <h2 class="text-center text-lg font-bold mb-4">Book Service</h2>
-                <form method="POST" action="{% url 'services:service_bookings' %}">
+                <form method="POST" action="{% url 'services:service_bookings' %}" id="bookingForm">
                     {% csrf_token %}
+                    <input type="hidden" name="session_id" id="modalSessionId">
+                    <input type="hidden" name="subcategory_id" id="modalSubcategoryId">
+
                     <div class="mb-3">
                         <span class="font-semibold">Order Date:</span>
                         <span id="orderDateDisplay" class="flex-grow text-right"></span>
@@ -68,17 +76,17 @@
                     </div>
                     <div class="mb-3">
                         <label for="payment_method" class="block font-semibold">Payment Method:</label>
-                        <select id="payment_method" name="payment_method" class="border w-full p-2"
-                            style="height: 40px;">
+                        <select id="payment_method" name="payment_method" class="border w-full p-2" style="height: 40px;">
                             {% for value, display in payment_methods.items %}
-                            <option value="{{ value }}">{{ display }}</option>
+                                <option value="{{ value }}">{{ display }}</option>
                             {% endfor %}
                         </select>
                     </div>
                     <div class="mt-10 flex justify-end space-x-2">
                         <button type="button" id="closeModal"
                             class="bg-gray-500 text-white px-4 py-2 rounded">Cancel</button>
-                        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Book Service</button>
+                        <button type="submit"
+                            class="bg-blue-500 text-white px-4 py-2 rounded">Confirm Booking</button>
                     </div>
                 </form>
             </div>
@@ -116,39 +124,44 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        // Get modal and buttons
         const bookingModal = document.getElementById("bookingModal");
         const bookServiceButtons = document.querySelectorAll(".book-service-btn");
         const closeModalButton = document.getElementById("closeModal");
-
-        // Function to format the current date
-        function getCurrentDate() {
-            const now = new Date();
-            const day = String(now.getDate()).padStart(2, "0");
-            const month = String(now.getMonth() + 1).padStart(2, "0"); // Month is zero-based
-            const year = now.getFullYear();
-            const hours = String(now.getHours()).padStart(2, "0");
-            const minutes = String(now.getMinutes()).padStart(2, "0");
-
-            return `${year}-${month}-${day} ${hours}:${minutes}`;
-        }
-
+        const modalSessionId = document.getElementById("modalSessionId");
+        const modalSubcategoryId = document.getElementById("modalSubcategoryId");
+        const orderDateDisplay = document.getElementById("orderDateDisplay");
+    
         // Show modal when any "Book Service" button is clicked
         bookServiceButtons.forEach(button => {
             button.addEventListener("click", () => {
+                // Set the hidden input values from the button's data attributes
+                modalSessionId.value = button.dataset.sessionId;
+                modalSubcategoryId.value = button.dataset.subcategoryId;
+                
                 // Update the order date
                 orderDateDisplay.textContent = getCurrentDate();
-
+    
+                // Show modal
                 bookingModal.classList.remove("hidden");
                 bookingModal.classList.add("flex");
             });
         });
-
-        // Hide modal when the close button is clicked
+    
+        // Hide modal when close button is clicked
         closeModalButton.addEventListener("click", () => {
             bookingModal.classList.add("hidden");
             bookingModal.classList.remove("flex");
         });
+    
+        function getCurrentDate() {
+            const now = new Date();
+            const day = String(now.getDate()).padStart(2, "0");
+            const month = String(now.getMonth() + 1).padStart(2, "0");
+            const year = now.getFullYear();
+            const hours = String(now.getHours()).padStart(2, "0");
+            const minutes = String(now.getMinutes()).padStart(2, "0");
+            return `${year}-${month}-${day} ${hours}:${minutes}`;
+        }
     });
 </script>
 
