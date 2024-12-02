@@ -1,20 +1,14 @@
 # main/views.py
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect, get_object_or_404
-from django.shortcuts import render, redirect
 from django.contrib import messages
-from .forms import UserRegistrationForm, WorkerRegistrationForm
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import logout
 from django.http import HttpResponseRedirect
 from django.urls import reverse
+from django.conf import settings
+from django.contrib.auth.hashers import check_password, make_password
 import psycopg2
-from django.conf import settings
-from django.shortcuts import render
-from django.contrib.auth.hashers import check_password
-from django.conf import settings
-from django.contrib.auth.hashers import make_password
-
+from .forms import UserRegistrationForm, WorkerRegistrationForm, ProfileUpdateForm
 
 def authenticate(request):
     user_phone = request.session.get('user_phone')
@@ -187,32 +181,31 @@ def logout_user(request):
 def register_landing(request):
     return render(request, 'register_landing.html')
 
+def register_user(request):
+    if request.method == 'POST':
+        form = UserRegistrationForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.password = make_password(user.password)  # Hash the password
+            user.save()
+            messages.success(request, 'Registration successful. Please log in.')
+            return redirect('login')
+    else:
+        form = UserRegistrationForm()
+    return render(request, 'register_user.html', {'form': form})
 
-# def register_user(request):
-#     if request.method == 'POST':
-#         form = UserRegistrationForm(request.POST)
-#         if form.is_valid():
-#             user = form.save(commit=False)
-#             user.password = make_password(user.password)  # Hash the password
-#             user.save()
-#             messages.success(request, 'Registration successful. Please log in.')
-#             return redirect('login')
-#     else:
-#         form = UserRegistrationForm()
-#     return render(request, 'register_user.html', {'form': form})
-
-# def register_worker(request):
-#     if request.method == 'POST':
-#         form = WorkerRegistrationForm(request.POST)
-#         if form.is_valid():
-#             user = form.save(commit=False)
-#             user.password = make_password(user.password)  # Hash the password
-#             user.save()
-#             messages.success(request, 'Registration successful. Please log in.')
-#             return redirect('login')
-#     else:
-#         form = WorkerRegistrationForm()
-#     return render(request, 'register_worker.html', {'form': form})
+def register_worker(request):
+    if request.method == 'POST':
+        form = WorkerRegistrationForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.password = make_password(user.password)  # Hash the password
+            user.save()
+            messages.success(request, 'Registration successful. Please log in.')
+            return redirect('login')
+    else:
+        form = WorkerRegistrationForm()
+    return render(request, 'register_worker.html', {'form': form})
 
 def register_user(request):
     if request.method == 'POST':
@@ -359,135 +352,77 @@ def buy_voucher(request, voucher_id):
     messages.error(request, 'Invalid request.')
     return HttpResponseRedirect(reverse('discount'))
 
-# def profile_view(request):
-#     user = User.objects.filter(phone_number=request.session.get('user_phone')).first()
-#     if not user:
-#         return redirect('login')
-
-#     is_worker = Worker.objects.filter(user_ptr_id=user.id).exists()
-
-#     if request.method == 'POST':
-#         if is_worker:
-#             form = WorkerProfileUpdateForm(request.POST, instance=user.worker)
-#         else:
-#             form = UserProfileUpdateForm(request.POST, instance=user)
-        
-#         if form.is_valid():
-#             form.save()
-#             messages.success(request, 'Profile updated successfully.')
-#             return redirect('profile')
-#     else:
-#         if is_worker:
-#             form = WorkerProfileUpdateForm(instance=user.worker)
-#         else: 
-#             form = UserProfileUpdateForm(instance=user)
-
-#     context = {
-#         'user': user,
-#         'is_worker': is_worker,
-#         'form': form,
-#         # Placeholder values for now
-#         'level': 'Bronze',
-#         'mypay_balance': user.mypay_balance,
-#         'rate': 0.00,
-#         'completed_orders': 0,
-#         'job_categories': []
-#     }
-
-#     return render(request, 'profile.html', context)
-
 
 def profile_view(request):
-    user_phone = request.session.get('user_phone')
-    is_worker = request.session.get('is_worker', False)
+    user_id = request.session.get('user_id')  # Replace with your session management
+    is_worker = False
 
-    if not user_phone:
-        messages.error(request, "Please log in first")
-        return redirect('login')
-    
-    try:
-        with psycopg2.connect(
-            dbname=settings.DATABASES['default']['NAME'],
-            user=settings.DATABASES['default']['USER'],
-            password=settings.DATABASES['default']['PASSWORD'],
-            host=settings.DATABASES['default']['HOST'],
-            port=settings.DATABASES['default']['PORT']
-        ) as conn:
-            with conn.cursor() as cursor:
-                # Get user data
-                cursor.execute("""
-                    SELECT id, name, password, phone_number, sex, birth_date, 
-                           address, mypay_balance 
-                    FROM main_user 
-                    WHERE phone_number = %s
-                """, (user_phone,))
-                user_data = cursor.fetchone()
-                
-                if not user_data:
-                    messages.error(request, 'User data not found.')
-                    return redirect('homepage')
+    # Fetch user data
+    with psycopg2.connect(
+        dbname=settings.DATABASES['default']['NAME'],
+        user=settings.DATABASES['default']['USER'],
+        password=settings.DATABASES['default']['PASSWORD'],
+        host=settings.DATABASES['default']['HOST'],
+        port=settings.DATABASES['default']['PORT']
+    ) as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT name, sex, phone_number, birth_date, address, mypay_balance FROM main_user WHERE id = %s", (user_id,))
+            user_data = cursor.fetchone()
+            if not user_data:
+                messages.error(request, "User not found.")
+                return redirect('home')
 
-                worker_data = None
-                if is_worker:
-                    cursor.execute("""
-                        SELECT bank_name, account_number, npwp, 
-                               completed_orders_count, job_categories, image_url
-                        FROM main_worker 
-                        WHERE user_ptr_id = %s
-                    """, (user_data[0],))
-                    worker_data = cursor.fetchone()
+            # Check if the user is also a worker
+            cursor.execute("SELECT bank_name, account_number, npwp FROM main_worker WHERE user_ptr_id = %s", (user_id,))
+            worker_data = cursor.fetchone()
+            if worker_data:
+                is_worker = True
 
-                context = {
-                    'user': {
-                        'id': user_data[0],
-                        'name': user_data[1],
-                        'phone_number': user_data[3],
-                        'sex': user_data[4],
-                        'birth_date': user_data[5],
-                        'address': user_data[6],
-                        'mypay_balance': user_data[7]
-                    },
-                    'is_worker': is_worker,
-                    'level': 'Bronze'  # You can add logic for level calculation
-                }
+    # Handle form submission
+    if request.method == "POST":
+        form = ProfileUpdateForm(request.POST)
+        if form.is_valid():
+            form.update(user_id, is_worker)
+            messages.success(request, "Profile updated successfully.")
+            return redirect('profile')
+        else:
+            messages.error(request, "Error updating profile.")
+    else:
+        # Populate form with initial data
+        initial_data = {
+            'name': user_data[0],
+            'sex': user_data[1],
+            'phone_number': user_data[2],
+            'birth_date': user_data[3],
+            'address': user_data[4],
+        }
+        if is_worker:
+            initial_data.update({
+                'bank_name': worker_data[0],
+                'account_number': worker_data[1],
+                'npwp': worker_data[2],
+            })
+        form = ProfileUpdateForm(initial=initial_data)
 
-                if worker_data:
-                    context['user'].update({
-                        'bank_name': worker_data[0],
-                        'account_number': worker_data[1],
-                        'npwp': worker_data[2],
-                        'rate': worker_data[3],
-                        'completed_orders': worker_data[4],
-                        'job_categories': worker_data[5].split(',') if worker_data[5] else [],
-                        'image_url': worker_data[6]
-                    })
+    context = {
+        'user': {
+            'name': user_data[0],
+            'sex': user_data[1],
+            'phone_number': user_data[2],
+            'birth_date': user_data[3],
+            'address': user_data[4],
+            'mypay_balance': user_data[5],
+        },
+        'worker': {
+            'bank_name': worker_data[0],
+            'account_number': worker_data[1],
+            'npwp': worker_data[2],
+        } if is_worker else None,
+        'form': form,
+        'is_worker': is_worker,
+    }
 
-                if request.method == 'POST':
-                    # Handle form submission
-                    name = request.POST.get('name')
-                    password = request.POST.get('password')
-                    sex = request.POST.get('sex')
-                    phone_number = request.POST.get('phone_number')
-                    birth_date = request.POST.get('birth_date')
-                    address = request.POST.get('address')
-
-                    hashed_password = make_password(password) if password else user_data[2]
-
-                    cursor.execute("""
-                        UPDATE main_user
-                        SET name = %s, password = %s, sex = %s, phone_number = %s, birth_date = %s, address = %s
-                        WHERE id = %s
-                    """, (name, hashed_password, sex, phone_number, birth_date, address, user_data[0]))
-                    conn.commit()
-                    messages.success(request, 'Profile updated successfully.')
-                    return redirect('profile')
-
-                return render(request, 'profile.html', context)
-
-    except Exception as e:
-        print(f"Profile view error: {e}")
-        messages.error(request, 'Error loading profile.')
-        return redirect('homepage')
+    return render(request, 'profile.html', context)
 
 def mypay(request):
     # Dummy user data
