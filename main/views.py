@@ -209,15 +209,14 @@ def register_user(request):
                 ) as conn:
                     with conn.cursor() as cursor:
                         cursor.execute("""
-                            INSERT INTO main_user (name, password, sex, phone_number, birth_date, address, date_joined, is_active, is_staff, is_superuser, mypay_balance, email, first_name, last_name, username)
-                            VALUES (%s, %s, %s, %s, %s, %s, NOW(), TRUE, FALSE, FALSE, %s, %s, %s, %s, %s)
+                            INSERT INTO main_user (name, password, sex, phone_number, address, date_joined, is_active, is_staff, is_superuser, mypay_balance, email, first_name, last_name, username)
+                            VALUES (%s, %s, %s, %s, %s, NOW(), TRUE, FALSE, FALSE, %s, %s, %s, %s, %s)
                             RETURNING id
                         """, (
                             data['name'], 
                             hashed_password, 
                             data['sex'], 
-                            data['phone_number'], 
-                            data['birth_date'], 
+                            data['phone_number'],  
                             data['address'], 
                             0,  # Default value for mypay_balance
                             data.get('email', ''),  # Default to empty string if not provided
@@ -266,18 +265,17 @@ def register_worker(request):
                         # Insert into main_user
                         cursor.execute("""
                             INSERT INTO main_user (
-                                name, password, sex, phone_number, birth_date, address, 
+                                name, password, sex, phone_number, address, 
                                 date_joined, is_active, is_staff, is_superuser, 
                                 mypay_balance, email, first_name, last_name, username
                             )
-                            VALUES (%s, %s, %s, %s, %s, %s, NOW(), TRUE, FALSE, FALSE, %s, %s, %s, %s, %s)
+                            VALUES (%s, %s, %s, %s, %s, NOW(), TRUE, FALSE, FALSE, %s, %s, %s, %s, %s)
                             RETURNING id
                         """, (
                             data['name'], 
                             hashed_password, 
                             data['sex'], 
                             data['phone_number'], 
-                            data['birth_date'], 
                             data['address'], 
                             0,  # Default value for mypay_balance
                             data.get('email', ''),  # Default to empty string if not provided
@@ -416,7 +414,7 @@ def profile_view(request):
             with conn.cursor() as cursor:
                 # Get user data
                 cursor.execute("""
-                    SELECT id, name, password, phone_number, sex, birth_date, 
+                    SELECT id, name, password, phone_number, sex,  
                            address, mypay_balance 
                     FROM main_user 
                     WHERE phone_number = %s
@@ -432,11 +430,11 @@ def profile_view(request):
                         'name': user_data[1],
                         'phone_number': user_data[3],
                         'sex': user_data[4],
-                        'birth_date': user_data[5],
-                        'address': user_data[6],
-                        'mypay_balance': user_data[7]
+                        'address': user_data[5],
+                        'mypay_balance': user_data[6]
                     },
                     'user_name': user_data[1],  
+                    'user_sex': user_data[4],
                     'is_worker': is_worker,
                     'level': 'Bronze'  # You can add logic for level calculation
                 }
@@ -455,25 +453,25 @@ def profile_view(request):
                             'image_url': worker_data[3]
                         })
                 if request.method == 'POST':
-                    # Handle form submission
                     name = request.POST.get('name')
+                    if not name:
+                        messages.error(request, 'Name is required.')
+                        return render(request, 'profile.html', context)
+                        
                     password = request.POST.get('password')
                     sex = request.POST.get('sex')
                     phone_number = request.POST.get('phone_number')
-                    birth_date = request.POST.get('birth_date')
                     address = request.POST.get('address')
                     image_url = request.POST.get('image_url') if is_worker else None
                     hashed_password = make_password(password) if password else user_data[2]
-                    # Update main_user
+
                     cursor.execute("""
                         UPDATE main_user
                         SET name = %s, password = %s, sex = %s, phone_number = %s, 
-                            birth_date = %s, address = %s
+                            address = %s
                         WHERE id = %s
-                    """, (name, hashed_password, sex, phone_number, birth_date, address, user_data[0]))
-                    # Update main_worker if applicable
+                    """, (name, hashed_password, sex, phone_number, address, user_data[0]))
                     if is_worker:
-                        # If image_url is empty, set it to NULL
                         image_url = image_url if image_url else None
                         cursor.execute("""
                             UPDATE main_worker
