@@ -86,7 +86,7 @@
                 {% else %}
                 <!-- Logged in - show profile picture and nav links -->
                 <div class="flex items-center space-x-6">
-                    <p class="text-blue-500">{{ request.session.is_worker|yesno:"Worker,User" }} | {{ request.session.user_phone }}</p>
+                    <p class="text-blue-500">{{ request.session.is_worker|yesno:"Worker,User" }} | {{ user_name }}</p>
                     <a href="{% url 'homepage' %}" class="text-gray-900 hover:text-blue-900 text-900 font-medium">Homepage</a>
                     <div class="relative">
                         <button onclick="toggleDropdown()" class="focus:outline-none">
