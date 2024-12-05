@@ -132,12 +132,14 @@ def subcategory(request, subcategory_id=None):
             'id': subcategory[0],
             'name': subcategory[1],
             'description': subcategory[2],
-            'category_id': subcategory[3]
+            'category_id': subcategory[3],
+            'user_name': user[1],
         },
         'sessions': [{'id': session[0], 'session': session[1], 'price': session[2]} for session in sessions],
         'payment_methods': payment_methods,
         'user': user,
         'is_worker': is_worker,
+        'user_name': user[1] 
     }
     return render(request, 'subcategory.html', context)
 
@@ -205,6 +207,9 @@ def service_bookings(request):
             port=settings.DATABASES['default']['PORT']
         ) as conn:
             with conn.cursor() as cursor:
+
+                cursor.execute("SELECT name FROM main_user WHERE id = %s", (user[0],))
+                user_name = cursor.fetchone()[0]
                 # Fetch all available sessions from the database
                 cursor.execute("SELECT id, session, price, subcategory_id FROM services_servicesession")
                 sessions = cursor.fetchall()
@@ -246,10 +251,11 @@ def service_bookings(request):
                 unique_subcategories = {session[3] for session in booked_sessions}  # Subcategory ID is the 4th column (index 3)
 
         context = {
-            'user': user,
+            'user_name': user,
             'is_worker': is_worker,
             'booked_sessions': booked_sessions,
             'unique_subcategories': unique_subcategories,
+            'user_name': user_name,
         }
         
         # Render the page with the context
@@ -274,6 +280,10 @@ def service_order_list(request):
             port=settings.DATABASES['default']['PORT']
         ) as conn:
             with conn.cursor() as cursor:
+                # First get the user's name
+                cursor.execute("SELECT name FROM main_user WHERE id = %s", (user[0],))
+                user_name = cursor.fetchone()[0]
+
                 cursor.execute("SELECT * FROM main_worker WHERE user_ptr_id = %s", (user[0],))
                 worker = cursor.fetchone()
 
@@ -294,7 +304,8 @@ def service_order_list(request):
             'orders': orders,
             'categories': categories,
             'user': user,
-            'is_worker': is_worker
+            'is_worker': is_worker,
+            'user_name': user_name,
         }
         return render(request, 'service_orders/order_list.html', context)
     except Exception as e:
