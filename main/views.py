@@ -38,7 +38,6 @@ def authenticate(request):
                 cursor.execute("SELECT * FROM main_user WHERE phone_number = %s", (user_phone,))
                 user = cursor.fetchone()
                 
-                
                 if not user:
                     messages.error(request, "User not found.")
                     return None, False
@@ -46,7 +45,6 @@ def authenticate(request):
                 # Check if user is a worker
                 cursor.execute("SELECT EXISTS(SELECT 1 FROM main_worker WHERE user_ptr_id = %s)", (user[0],))
                 is_worker = cursor.fetchone()[0]
-                
                 return user, is_worker
                 
     except Exception as e:
@@ -77,7 +75,6 @@ def homepage(request):
     search_query = request.GET.get('search', '').strip()
     category_filter = request.GET.get('category', '').strip()
 
-    
     with psycopg2.connect(
         dbname=settings.DATABASES['default']['NAME'],
         user=settings.DATABASES['default']['USER'],
@@ -132,7 +129,6 @@ def homepage(request):
                         'name': subcategory_name,
                         'description': subcategory_description
                     })
-                    print(category_dict)
     
     context = {
         'user': user,
@@ -397,9 +393,9 @@ def some_view(request):
     }
     return render(request, 'template_name.html', context)
 
-def profile_view(request):
-    user_phone = request.session.get('user_phone')
-    is_worker = request.session.get('is_worker', False)
+def profile_view(request, worker_id=None):
+    user_phone = request.session.get('user_phone') if worker_id is None else None
+    is_worker = request.session.get('is_worker', False) if worker_id is None else True
     if not user_phone:
         messages.error(request, "Please log in first")
         return redirect('login')
