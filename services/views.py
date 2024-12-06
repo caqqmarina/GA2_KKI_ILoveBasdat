@@ -75,7 +75,6 @@ def subcategory(request, subcategory_id=None):
             port=settings.DATABASES['default']['PORT']
         ) as conn:
             with conn.cursor() as cursor:
-            
                 # Fetch subcategory data
                 cursor.execute("""
                     SELECT s.id, s.name, s.description, s.category_id, c.name AS category_name 
@@ -139,6 +138,13 @@ def subcategory(request, subcategory_id=None):
                 cursor.execute("SELECT user_ptr_id, bank_name FROM main_worker")
                 payment_methods = dict(cursor.fetchall())
 
+                # Check if the worker is already in the category
+                cursor.execute("""
+                    SELECT 1 FROM workers_category 
+                    WHERE worker_id = %s AND category_id = %s
+                """, (user[0], subcategory[3],))
+                is_joined = cursor.fetchone()
+
     except Exception as e:
         print(f"Error handling subcategory: {e}")
         messages.error(request, 'An error occurred while handling the subcategory.')
@@ -153,6 +159,7 @@ def subcategory(request, subcategory_id=None):
             'category_name' : subcategory[4],
             'user_name' : user[1],
         },
+        'join_button': not is_joined,
         'workers': workers_list,
         'sessions': [{'id': session[0], 'session': session[1], 'price': session[2]} for session in sessions],
         'payment_methods': payment_methods,
