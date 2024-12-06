@@ -410,8 +410,7 @@ def profile_view(request, worker_id=None):
             with conn.cursor() as cursor:
                 # Get user data
                 cursor.execute("""
-                    SELECT id, name, password, phone_number, sex,  
-                           address, mypay_balance 
+                    SELECT id, name, password, phone_number, sex, address, mypay_balance
                     FROM main_user 
                     WHERE phone_number = %s
                 """, (user_phone,))
@@ -419,6 +418,7 @@ def profile_view(request, worker_id=None):
                 if not user_data:
                     messages.error(request, 'User data not found.')
                     return redirect('homepage')
+                print(user_data)
                 
                 context = {
                     'user': {
@@ -482,6 +482,48 @@ def profile_view(request, worker_id=None):
         logger.error(f"Profile update error: {e}", exc_info=True)
         messages.error(request, 'Error updating profile.')
         return redirect('homepage')
+    
+def worker_profile(request, worker_id):
+    # Get worker_id from the URL and check if the user is a worker
+    is_worker = request.session.get('is_worker', False)
+
+    try:
+        with psycopg2.connect(
+            dbname=settings.DATABASES['default']['NAME'],
+            user=settings.DATABASES['default']['USER'],
+            password=settings.DATABASES['default']['PASSWORD'],
+            host=settings.DATABASES['default']['HOST'],
+            port=settings.DATABASES['default']['PORT']
+        ) as conn:
+            with conn.cursor() as cursor:
+                # Get user data by worker_id
+                cursor.execute("""
+                    SELECT id, name, phone_number, sex, address
+                    FROM main_user 
+                    WHERE id = %s
+                """, (worker_id,))
+                user_data = cursor.fetchone()
+
+                if not user_data:
+                    messages.error(request, "Worker not found.")
+                    return redirect('services:worker_list')  # Redirect to worker list or any relevant page
+                
+                # Prepare context for template rendering
+                context = {
+                    'worker': {
+                        'id': user_data[0],
+                        'name': user_data[1],
+                        'phone_number': user_data[2],
+                        'sex': user_data[3],
+                        'address': user_data[4],
+                    },
+                }
+            # Render the profile page
+            return render(request, 'worker_profile.html', context)
+    
+    except Exception as e:
+        print(f"Error fetching worker details: {e}")
+        messages.error(request, "An error occurred while fetching worker details.")
     
 def mypay(request):
     # Database connection details
