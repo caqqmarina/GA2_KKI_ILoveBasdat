@@ -3,6 +3,7 @@ from django.views.generic import TemplateView
 from main import views
 from django.contrib.auth.views import LogoutView
 
+
 urlpatterns = [
     path('', views.landing_page, name='landing'),
     path('homepage/', views.homepage, name='homepage'),
@@ -18,6 +19,7 @@ urlpatterns = [
     path('logout/', views.logout_user, name='logout'),
     path('discount/', views.discount_page, name='discount'),
     path('profile/', views.profile_view, name='profile'),
+    path('profile/<int:worker_id>/', views.profile_view, name='worker_profile'),
     path('buy_voucher/<int:voucher_id>', views.buy_voucher, name="buy_voucher"),
     path('mypay/', views.mypay, name='mypay'),
 ]

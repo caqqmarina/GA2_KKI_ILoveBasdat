@@ -30,7 +30,7 @@ def get_subcategories(request, category_id):
 
 def authenticate(request):
     user_phone = request.session.get('user_phone')
-
+    
     if not user_phone:
         messages.error(request, "You need to log in first.")
         return None, False
@@ -44,19 +44,21 @@ def authenticate(request):
             port=settings.DATABASES['default']['PORT']
         ) as conn:
             with conn.cursor() as cursor:
-                cursor.execute("SELECT id FROM main_user WHERE phone_number = %s", (user_phone,))
+                # Check if user exists
+                cursor.execute("SELECT * FROM main_user WHERE phone_number = %s", (user_phone,))
                 user = cursor.fetchone()
+                
                 if not user:
                     messages.error(request, "User not found.")
                     return None, False
-
+                
+                # Check if user is a worker
                 cursor.execute("SELECT EXISTS(SELECT 1 FROM main_worker WHERE user_ptr_id = %s)", (user[0],))
                 is_worker = cursor.fetchone()[0]
                 return user, is_worker
-            
+                
     except Exception as e:
         print(f"Authentication error: {e}")
-        messages.error(request, "An error occurred during authentication.")
         return None, False
 
 def subcategory(request, subcategory_id=None):
@@ -73,17 +75,28 @@ def subcategory(request, subcategory_id=None):
             port=settings.DATABASES['default']['PORT']
         ) as conn:
             with conn.cursor() as cursor:
+            
                 # Fetch subcategory data
                 cursor.execute("""
-                    SELECT id, name, description, category_id 
-                    FROM services_subcategory 
-                    WHERE id = %s
+                    SELECT s.id, s.name, s.description, s.category_id, c.name AS category_name 
+                    FROM services_subcategory s
+                    INNER JOIN services_servicecategory c ON s.category_id = c.id
+                    WHERE s.id = %s
                 """, (subcategory_id,))
                 subcategory = cursor.fetchone()
                 
                 if not subcategory:
                     messages.error(request, "Subcategory not found.")
                     return redirect('services:service_order_list')
+                
+                cursor.execute("""
+                    SELECT w.id AS worker_id, w.name
+                    FROM main_user w
+                    INNER JOIN workers_category wc ON w.id = wc.worker_id
+                    WHERE wc.category_id = %s
+                """, (subcategory[3],))
+                workers = cursor.fetchall()
+                workers_list = [{'worker_id': w[0], 'name': w[1]} for w in workers]
 
                 # Fetch related sessions
                 cursor.execute("""
@@ -137,13 +150,15 @@ def subcategory(request, subcategory_id=None):
             'name': subcategory[1],
             'description': subcategory[2],
             'category_id': subcategory[3],
-            'user_name': user[1],
+            'category_name' : subcategory[4],
+            'user_name' : user[1],
         },
+        'workers': workers_list,
         'sessions': [{'id': session[0], 'session': session[1], 'price': session[2]} for session in sessions],
         'payment_methods': payment_methods,
         'user': user,
         'is_worker': is_worker,
-        'user_name': user[1] 
+        'user_name' : user[1]
     }
     return render(request, 'subcategory.html', context)
 
@@ -414,7 +429,6 @@ def update_status(request, order_id):
         messages.error(request, 'An error occurred while updating the order status.')
         return redirect('services:service_order_list')
 
-    
 def service_job(request):
     if request.method == "GET":
         # Fetch categories and subcategories from the database
@@ -481,3 +495,41 @@ def service_job(request):
         else:
             messages.error(request, "Invalid input. Please check the form.")
             return render(request, 'service_job_form.html', {'form': form})
+
+def join_category(request, category_id, subcategory_id):
+    user, is_worker = authenticate(request)
+    if not user or not is_worker:
+        return JsonResponse({'success': False, 'message': 'Unauthorized'}, status=403)
+
+    try:
+        with psycopg2.connect(
+            dbname=settings.DATABASES['default']['NAME'],
+            user=settings.DATABASES['default']['USER'],
+            password=settings.DATABASES['default']['PASSWORD'],
+            host=settings.DATABASES['default']['HOST'],
+            port=settings.DATABASES['default']['PORT']
+        ) as conn:
+            with conn.cursor() as cursor:
+                # Check if the worker is already in the category
+                cursor.execute("""
+                    SELECT id FROM workers_category 
+                    WHERE worker_id = %s AND category_id = %s
+                """, (user[0], category_id))
+                relationship = cursor.fetchone()
+
+                if relationship:
+                    # Worker is already joined, return success
+                    return JsonResponse({'success': True, 'message': 'Already joined this category.'})
+                
+                # Add the worker to the category
+                cursor.execute("""
+                    INSERT INTO workers_category (worker_id, category_id)
+                    VALUES (%s, %s)
+                """, (user[0], category_id))
+                conn.commit()
+
+                return JsonResponse({'success': True, 'message': 'Successfully joined the category.'})
+
+    except Exception as e:
+        print(f"Error adding worker to category: {e}")
+        return JsonResponse({'success': False, 'message': 'An error occurred.'}, status=500)
