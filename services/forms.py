@@ -64,3 +64,14 @@ class TestimonialForm(forms.Form):
                     VALUES (%s, %s, %s, %s, NOW())
                 """, (data['rating'], data['content'], data['subcategory_id'], data['user_id']))
                 conn.commit()
+
+class ServiceJobForm(forms.Form):
+    category = forms.ChoiceField(choices=[], required=True, label="Service Category")
+    subcategory = forms.ChoiceField(choices=[], required=True, label="Service Subcategory")
+
+    def __init__(self, *args, **kwargs):
+        category_choices = kwargs.pop('category_choices', [])
+        subcategory_choices = kwargs.pop('subcategory_choices', [])
+        super().__init__(*args, **kwargs)
+        self.fields['category'].choices = category_choices
+        self.fields['subcategory'].choices = subcategory_choices

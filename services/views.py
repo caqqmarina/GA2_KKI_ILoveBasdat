@@ -1,9 +1,10 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from .forms import TestimonialForm
+from .forms import TestimonialForm, ServiceJobForm
 from django.contrib import messages
 from django.http import JsonResponse
 from django.conf import settings
+from django.db import connection
 import psycopg2
 
 def get_subcategories(request, category_id):
@@ -16,7 +17,10 @@ def get_subcategories(request, category_id):
             port=settings.DATABASES['default']['PORT']
         ) as conn:
             with conn.cursor() as cursor:
-                cursor.execute("SELECT id, name FROM services_subcategory WHERE category_id = %s", (category_id,))
+                if category_id:
+                    cursor.execute("SELECT id, name FROM services_subcategory WHERE category_id = %s", (category_id,))
+                else:
+                    cursor.execute("SELECT id, name FROM services_subcategory")
                 subcategories = cursor.fetchall()
                 subcategory_list = [{'id': subcategory[0], 'name': subcategory[1]} for subcategory in subcategories]
         return JsonResponse(subcategory_list, safe=False)
@@ -312,6 +316,28 @@ def service_order_list(request):
         print(f"Error fetching service orders: {e}")
         messages.error(request, 'An error occurred while fetching service orders.')
         return redirect('services:service_order_list')
+    
+def service_status(request):
+    status_filter = request.GET.get('status', None)
+    name_filter = request.GET.get('name', None)
+
+    query = "SELECT * FROM service_orders WHERE 1=1"
+    params = []
+
+    if status_filter:
+        query += " AND status = %s"
+        params.append(status_filter)
+
+    if name_filter:
+        query += " AND order_name LIKE %s"
+        params.append(f"%{name_filter}%")
+
+    with connection.cursor() as cursor:
+        cursor.execute(query, params)
+        columns = [col[0] for col in cursor.description]
+        orders = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    return render(request, 'service_status.html', {'orders': orders})
 
 def update_status(request, order_id):
     user, is_worker = authenticate(request)
@@ -328,55 +354,130 @@ def update_status(request, order_id):
         ) as conn:
             with conn.cursor() as cursor:
                 if is_worker:
-                    cursor.execute("SELECT * FROM services_workerserviceorder WHERE id = %s", (order_id,))
+                    # Worker-related order handling
+                    cursor.execute("SELECT id, status FROM services_workerserviceorder WHERE id = %s", (order_id,))
                     order = cursor.fetchone()
 
                     if not order:
-                        messages.error(request, "Order not found")
+                        messages.error(request, "Order not found.")
                         return redirect('services:service_order_list')
 
-                    if order[4] == 'looking_for_worker':
-                        cursor.execute("""
+                    current_status = order[1]
+                    worker_status_updates = {
+                        'looking_for_worker': ('worker_assigned', "assigned_worker_id"),
+                        'worker_assigned': ('in_progress', None),
+                        'in_progress': ('completed', None),
+                    }
+
+                    if current_status in worker_status_updates:
+                        next_status, extra_field = worker_status_updates[current_status]
+                        update_query = f"""
                             UPDATE services_workerserviceorder
-                            SET status = 'worker_assigned', assigned_worker_id = %s
+                            SET status = %s {', ' + extra_field + ' = %s' if extra_field else ''}
                             WHERE id = %s
-                        """, (user[0], order_id))
-                    elif order[4] == 'worker_assigned':
-                        cursor.execute("""
-                            UPDATE services_workerserviceorder
-                            SET status = 'in_progress'
-                            WHERE id = %s
-                        """, (order_id,))
-                    elif order[4] == 'in_progress':
-                        cursor.execute("""
-                            UPDATE services_workerserviceorder
-                            SET status = 'completed'
-                            WHERE id = %s
-                        """, (order_id,))
+                        """
+                        params = [next_status]
+                        if extra_field:
+                            params.append(user[0])  # Assuming user[0] is the worker's ID
+                        params.append(order_id)
+
+                        cursor.execute(update_query, params)
                 else:
-                    cursor.execute("SELECT * FROM services_serviceorder WHERE id = %s", (order_id,))
+                    # Non-worker-related order handling
+                    cursor.execute("SELECT id, status FROM services_serviceorder WHERE id = %s", (order_id,))
                     order = cursor.fetchone()
 
                     if not order:
-                        messages.error(request, "Order not found")
+                        messages.error(request, "Order not found.")
                         return redirect('services:service_order_list')
 
-                    if order[2] == 'waiting_for_departure':
+                    current_status = order[1]
+                    customer_status_updates = {
+                        'waiting_for_departure': 'arrived_at_location',
+                        'arrived_at_location': 'service_in_progress',
+                    }
+
+                    if current_status in customer_status_updates:
+                        next_status = customer_status_updates[current_status]
                         cursor.execute("""
                             UPDATE services_serviceorder
-                            SET status = 'arrived_at_location'
+                            SET status = %s
                             WHERE id = %s
-                        """, (order_id,))
-                    elif order[2] == 'arrived_at_location':
-                        cursor.execute("""
-                            UPDATE services_serviceorder
-                            SET status = 'service_in_progress'
-                            WHERE id = %s
-                        """, (order_id,))
+                        """, (next_status, order_id))
 
                 conn.commit()
+                messages.success(request, "Order status updated successfully.")
                 return redirect('services:service_order_list')
+
     except Exception as e:
         print(f"Update status error: {e}")
         messages.error(request, 'An error occurred while updating the order status.')
         return redirect('services:service_order_list')
+
+    
+def service_job(request):
+    if request.method == "GET":
+        # Fetch categories and subcategories from the database
+        try:
+            with psycopg2.connect(
+                dbname=settings.DATABASES['default']['NAME'],
+                user=settings.DATABASES['default']['USER'],
+                password=settings.DATABASES['default']['PASSWORD'],
+                host=settings.DATABASES['default']['HOST'],
+                port=settings.DATABASES['default']['PORT']
+            ) as conn:
+                with conn.cursor() as cursor:
+                    # Fetch categories
+                    cursor.execute("SELECT id, name FROM services_servicecategory")
+                    categories = [(cat[0], cat[1]) for cat in cursor.fetchall()]
+
+                    # Fetch subcategories
+                    cursor.execute("SELECT id, name, category_id FROM services_subcategory")
+                    subcategories = cursor.fetchall()
+
+        except Exception as e:
+            print(f"Error fetching categories/subcategories: {e}")
+            messages.error(request, "An error occurred while loading the form.")
+            return redirect('homepage')
+
+        # Render form with fetched data
+        form = ServiceJobForm(
+            category_choices=categories,
+            subcategory_choices=[(sub[0], sub[1]) for sub in subcategories]
+        )
+        return render(request, 'service_job_form.html', {'form': form})
+
+    elif request.method == "POST":
+        # Process the form submission
+        form = ServiceJobForm(request.POST)
+        if form.is_valid():
+            category_id = form.cleaned_data['category']
+            subcategory_id = form.cleaned_data['subcategory']
+
+            try:
+                # Perform operations like assigning a worker to the job
+                with psycopg2.connect(
+                    dbname=settings.DATABASES['default']['NAME'],
+                    user=settings.DATABASES['default']['USER'],
+                    password=settings.DATABASES['default']['PASSWORD'],
+                    host=settings.DATABASES['default']['HOST'],
+                    port=settings.DATABASES['default']['PORT']
+                ) as conn:
+                    with conn.cursor() as cursor:
+                        # Assign the worker or create the job record
+                        cursor.execute("""
+                            INSERT INTO services_workerserviceorder (subcategory_id, status)
+                            VALUES (%s, 'looking_for_worker')
+                        """, (subcategory_id,))
+                        conn.commit()
+
+                messages.success(request, "Service job created successfully!")
+                return redirect('service_order_list')  # Redirect to order list or another relevant page
+            except Exception as e:
+                print(f"Error creating service job: {e}")
+                messages.error(request, "An error occurred while creating the job.")
+                return redirect('service_job')
+
+        else:
+            messages.error(request, "Invalid input. Please check the form.")
+            return render(request, 'service_job_form.html', {'form': form})

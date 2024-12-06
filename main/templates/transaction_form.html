@@ -1,0 +1,81 @@
+<form method="POST" action="{% url 'transaction_process' %}">
+    {% csrf_token %}
+
+    <!-- Transaction Type -->
+    <div>
+        <label for="transaction_type">Transaction Type:</label>
+        <select id="transaction_type" name="transaction_type">
+            <option value="topup">TopUp MyPay</option>
+            <option value="service_payment">Service Payment</option>
+            <option value="transfer">Transfer MyPay</option>
+            <option value="withdrawal">Withdrawal</option>
+        </select>
+    </div>
+
+    <!-- Amount -->
+    <div>
+        <label for="amount">Amount:</label>
+        <input type="number" id="amount" name="amount" step="0.01" required>
+    </div>
+
+    <!-- Category (optional) -->
+    <div>
+        <label for="category">Category (optional):</label>
+        <input type="text" id="category" name="category">
+    </div>
+
+    <!-- Recipient Phone (only for 'transfer') -->
+    <div>
+        <label for="recipient_phone">Recipient Phone:</label>
+        <input type="text" id="recipient_phone" name="recipient_phone">
+    </div>
+
+    <!-- Service Session (only for 'service_payment') -->
+    <div>
+        <label for="service_session">Service Session:</label>
+        <input type="number" id="service_session" name="service_session">
+    </div>
+
+    <!-- Bank Details (only for 'withdrawal') -->
+    <div>
+        <label for="bank_name">Bank Name:</label>
+        <select id="bank_name" name="bank_name">
+            <option value="GoPay">GoPay</option>
+            <option value="OVO">OVO</option>
+            <option value="Virtual Account BCA">Virtual Account BCA</option>
+            <option value="Virtual Account BNI">Virtual Account BNI</option>
+            <option value="Virtual Account Mandiri">Virtual Account Mandiri</option>
+        </select>
+    </div>
+
+    <div>
+        <label for="bank_account_number">Bank Account Number:</label>
+        <input type="text" id="bank_account_number" name="bank_account_number">
+    </div>
+
+    <!-- Submit Button -->
+    <div>
+        <button type="submit">Submit</button>
+    </div>
+</form>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+    const transactionType = document.getElementById('transaction_type');
+    const recipientPhone = document.getElementById('recipient_phone').parentElement;
+    const serviceSession = document.getElementById('service_session').parentElement;
+    const bankDetails = document.getElementById('bank_name').parentElement;
+
+    function updateFieldVisibility() {
+        const type = transactionType.value;
+
+        recipientPhone.style.display = type === 'transfer' ? 'block' : 'none';
+        serviceSession.style.display = type === 'service_payment' ? 'block' : 'none';
+        bankDetails.style.display = type === 'withdrawal' ? 'block' : 'none';
+    }
+
+    transactionType.addEventListener('change', updateFieldVisibility);
+    updateFieldVisibility(); // Call on page load
+});
+
+</script>

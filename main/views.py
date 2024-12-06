@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate, login
 from django.shortcuts import render, redirect, get_object_or_404
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from .forms import UserRegistrationForm, WorkerRegistrationForm
+from .forms import TransactionForm, UserRegistrationForm, WorkerRegistrationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
 from django.http import HttpResponseRedirect
@@ -368,8 +368,8 @@ def buy_voucher(request, voucher_id):
     if request.method == 'POST':
         user = request.user
         try:
-            voucher = Voucher.objects.get(id=voucher_id)
-        except Voucher.DoesNotExist:
+            voucher = voucher.objects.get(id=voucher_id)
+        except voucher.DoesNotExist:
             messages.error(request, 'Voucher not found.')
             return HttpResponseRedirect(reverse('discount'))
 
@@ -488,26 +488,41 @@ def profile_view(request):
         return redirect('homepage')
     
 def mypay(request):
-    # Dummy user data
-    user = {
-        'phone_number': '1234567890',
-        'mypay_balance': 1000,
-    }
+    # Database connection details
+    conn = psycopg2.connect(
+        dbname="your_database_name",
+        user="postgres",
+        password="your_password",
+        host="localhost",
+        port="5432"
+    )
+    cursor = conn.cursor()
 
-    # Dummy transactions data
-    transactions = [
-        {'amount': 100, 'date': '2024-11-18', 'category': 'TopUp'},
-        {'amount': 200, 'date': '2024-11-17', 'category': 'Service Payment'},
-    ]
+    # Get user details (replace '1' with a dynamic user ID)
+    user_query = "SELECT phone_number, mypay_balance FROM users WHERE id = %s;"
+    cursor.execute(user_query, (1,))
+    user = cursor.fetchone()  # Example: (1234567890, 1000)
 
-    form = TransactionForm()
+    # Fetch transaction history for the user
+    transaction_query = """
+        SELECT amount, date, category FROM transactions WHERE user_id = %s ORDER BY date DESC;
+    """
+    cursor.execute(transaction_query, (1,))
+    transactions = cursor.fetchall()  # Example: [(100, '2024-11-18', 'TopUp')]
 
+    # Close the connection
+    conn.close()
+
+    # Prepare context
     context = {
-        'user': user,
-        'is_worker': False,
-        'mypay_balance': user['mypay_balance'],
-        'transactions': transactions,
-        'form': form,
+        'user': {
+            'phone_number': user[0],
+            'mypay_balance': user[1],
+        },
+        'mypay_balance': user[1],
+        'transactions': [
+            {'amount': t[0], 'date': t[1], 'category': t[2]} for t in transactions
+        ],
     }
 
     return render(request, 'mypay.html', context)
