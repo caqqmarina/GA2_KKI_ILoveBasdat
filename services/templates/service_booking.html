@@ -62,16 +62,30 @@
             </thead>
             <tbody>
                 {% for session in booked_sessions %}
-                <tr class="border-t">
-                    <td class="px-4 py-2">{{ session.subcategory_name }}</td>
-                    <td class="px-4 py-2">{{ session.session }}</td>
-                    <td class="px-4 py-2">${{ session.price }}</td>
-                    <td class="px-4 py-2"> - </td> <!-- Placeholder -->
-                    <td class="px-4 py-2"> - </td>
-                    <td class="px-4 py-2">
-                        <button class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600" onclick="openModal()">Create Testimonial</button>
-                    </td>
-                </tr>
+                    <tr class="border-t">
+                        <td class="px-4 py-2">{{ session.subcategory_name}}</td>
+                        <td class="px-4 py-2">{{ session.session }}</td>
+                        <td class="px-4 py-2">${{ session.price }}</td>
+                        <td class="px-4 py-2">{{ session.worker_name }}</td>
+                        <td class="px-4 py-2">{{ session.status }}</td>
+                        <td class="px-4 py-2">
+                            {% if session.status == "Waiting for Payment" or session.status == "Searching for Nearest Workers" %}
+                                <button class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">Cancel Order</button>
+                            {% elif session.status == "Order Completed" %}
+                            {% if session.testimonial_created %}
+                                <p>Testimonial Submitted</p>
+                            {% else %}
+                                <!-- Create Testimonial Button with data-id -->
+                                <button class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" 
+                                        data-session-id="{{ session.session_id }}" onclick="openModal(this)">
+                                    Create Testimonial
+                                </button>
+                            {% endif %}
+                            {% else %}
+                                <!-- No button -->
+                            {% endif %}
+                        </td>
+                    </tr>
                 {% empty %}
                 <tr class="border-t">
                     <td colspan="6" class="px-4 py-2 text-center">No sessions booked yet.</td>

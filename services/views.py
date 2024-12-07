@@ -248,26 +248,7 @@ def service_bookings(request):
                         messages.error(request, "No session selected.")
                         return redirect('services:category_services', subcategory_id=subcategory_id)
 
-                    # Initialize session variable for booked sessions if not already present
-                    if 'booked_sessions' not in request.session:
-                        request.session['booked_sessions'] = []
-
-                    # Add session_id to booked_sessions list if not already added
-                    if session_id not in request.session['booked_sessions']:
-                        request.session['booked_sessions'].append(session_id)
-                        request.session.modified = True
-
-                    # Store subcategory_id in session for future use
-                    request.session['subcategory_id'] = subcategory_id
-                    
-                    # Redirect to service bookings page
-                    return redirect('services:service_bookings')
-
-                # Get the booked sessions' IDs from the session
-                booked_session_ids = request.session.get('booked_sessions', [])
-                
-                if booked_session_ids:
-                    # Retrieve booked sessions along with subcategory names based on stored session IDs
+                    # Retrieve the session details for the current session being booked
                     cursor.execute("""
                         SELECT 
                             s.id AS session_id, 
@@ -280,33 +261,76 @@ def service_bookings(request):
                         INNER JOIN 
                             services_subcategory sc ON s.subcategory_id = sc.id
                         WHERE 
-                            s.id IN %s
-                    """, (tuple(booked_session_ids),))
-                    booked_sessions = cursor.fetchall()
-                else:
+                            s.id = %s
+                    """, (session_id,))
+                    booked_session = cursor.fetchone()  # Get the details of the current session being booked
+
+                    # Check if the session has already been booked by the current user
+                    cursor.execute("""
+                        SELECT id FROM public.booked_sessions 
+                        WHERE session_id = %s AND user_id = %s
+                    """, (booked_session[0], user[0]))
+                    existing_booking = cursor.fetchone()
+
+                    if not existing_booking:
+                        # Insert the session into the booked_sessions table if not already present
+                        cursor.execute("""
+                            INSERT INTO public.booked_sessions (session_id, session_name, price, subcategory_id, subcategory_name, worker_name, status, action, user_id)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        """, (
+                            booked_session[0],  # session_id
+                            booked_session[1],  # session_name
+                            booked_session[2],  # price
+                            booked_session[3],  # subcategory_id
+                            booked_session[4],  # subcategory_name
+                            'Default Worker',  # worker_name (replace with actual worker name if available)
+                            'Booked',          # status (can be updated later)
+                            'None',            # action (can be updated later)
+                            user[0]            # user_id
+                        ))
+                        conn.commit()
+
+                    # Redirect to service bookings page after successful booking
+                    return redirect('services:service_bookings')
+
+                cursor.execute("""
+                    SELECT 
+                        s.id AS session_id, 
+                        s.session AS session_name, 
+                        s.price, 
+                        sc.id AS subcategory_id, 
+                        sc.name AS subcategory_name,
+                        bs.worker_name AS worker_name,
+                        bs.status AS status
+                    FROM 
+                        public.booked_sessions bs
+                    INNER JOIN 
+                        services_servicesession s ON bs.session_id = s.id
+                    INNER JOIN 
+                        services_subcategory sc ON s.subcategory_id = sc.id
+                    WHERE 
+                        bs.user_id = %s
+                """, (user[0],))  # 'user[0]' is the user_id from the authenticated user
+                booked_sessions = cursor.fetchall()
+
+                # If there are no booked sessions, set an empty list
+                if not booked_sessions:
                     booked_sessions = []
 
-                # Convert to a list of dictionaries
                 booked_sessions_data = [
-                    {
-                        'session_id': session[0],
-                        'session': session[1],
-                        'price': session[2],
-                        'subcategory_id': session[3],
-                        'subcategory_name': session[4],
-                    }
+                    {'session_id': session[0], 'session': session[1], 'price': session[2], 'subcategory_id': session[3], 'subcategory_name': session[4], 'worker_name': session[5],
+                     'status': session[6]}
                     for session in booked_sessions
-                ]
+                ]    
 
-            # Get unique subcategories from the booked sessions
-            unique_subcategories = {session[4] for session in booked_sessions}  # Subcategory ID is the 4th column (index 3)
+                # Get unique subcategories from the booked sessions
+                unique_subcategories = {session[4] for session in booked_sessions}  # Subcategory name is at index 4
         
         context = {
-            'user_name': user,
+            'user_name': user_name,
             'is_worker': is_worker,
             'booked_sessions': booked_sessions_data,
             'unique_subcategories': unique_subcategories,
-            'user_name': user_name,
         }
         
         # Render the page with the context
