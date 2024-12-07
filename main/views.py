@@ -461,6 +461,9 @@ def profile_view(request, worker_id=None):
                     WHERE phone_number = %s
                 """, (user_phone,))
                 user_data = cursor.fetchone()
+                if not user_data:
+                    messages.error(request, 'User data not found.')
+                    return redirect('homepage')
                 
                 context = {
                     'user': {
