@@ -70,7 +70,10 @@
                         <td class="px-4 py-2">{{ session.status }}</td>
                         <td class="px-4 py-2">
                             {% if session.status == "Waiting for Payment" or session.status == "Searching for Nearest Workers" %}
-                                <button class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">Cancel Order</button>
+                            <button class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600" 
+                                    data-id="{{ session.id }}" onclick="cancelOrder(this)">
+                                Cancel Order
+                            </button>
                             {% elif session.status == "Order Completed" %}
                             {% if session.testimonial_created %}
                                 <p>Testimonial Submitted</p>
@@ -145,6 +148,37 @@
         // Here you can add your form submission logic
         alert("Testimonial submitted!");
         closeModal();
+    }
+
+    function cancelOrder(button) {
+        const Id = button.getAttribute('data-id'); // Get the ID from the button
+
+        if (confirm('Are you sure you want to cancel this order?')) {
+            // Send an AJAX request to delete the order
+            fetch('/services/cancel_order/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'  // Make sure to include the CSRF token
+                },
+                body: JSON.stringify({
+                    id: Id
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Order cancelled successfully.');
+                    location.reload();  // Reload the page to reflect the change
+                } else {
+                    alert('Error cancelling the order.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            });
+        }
     }
 </script>
 {% endblock %}

@@ -1,11 +1,13 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from .forms import TestimonialForm, ServiceJobForm
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from django.http import JsonResponse
 from django.conf import settings
 from django.db import connection
 import psycopg2
+import json
 
 def get_subcategories(request, category_id):
     try:
@@ -301,7 +303,8 @@ def service_bookings(request):
                         sc.id AS subcategory_id, 
                         sc.name AS subcategory_name,
                         bs.worker_name AS worker_name,
-                        bs.status AS status
+                        bs.status AS status,
+                        bs.id AS id
                     FROM 
                         public.booked_sessions bs
                     INNER JOIN 
@@ -319,9 +322,9 @@ def service_bookings(request):
 
                 booked_sessions_data = [
                     {'session_id': session[0], 'session': session[1], 'price': session[2], 'subcategory_id': session[3], 'subcategory_name': session[4], 'worker_name': session[5],
-                     'status': session[6]}
+                     'status': session[6], 'id': session[7]}
                     for session in booked_sessions
-                ]    
+                ]
 
                 # Get unique subcategories from the booked sessions
                 unique_subcategories = {session[4] for session in booked_sessions}  # Subcategory name is at index 4
@@ -589,3 +592,42 @@ def join_category(request, category_id, subcategory_id):
     except Exception as e:
         print(f"Error adding worker to category: {e}")
         return JsonResponse({'success': False, 'message': 'An error occurred.'}, status=500)
+
+def cancel_order(request):
+    user, is_worker = authenticate(request)
+    if not user:
+        return JsonResponse({'success': False, 'message': 'Unauthorized'}, status=403)
+
+    if request.method == 'POST':
+        try:
+            # Parse the request data
+            data = json.loads(request.body)
+            id = data.get('id')
+
+            if not id:
+                return JsonResponse({'success': False, 'message': 'ID is required.'}, status=400)
+
+            # Establish database connection
+            with psycopg2.connect(
+                dbname=settings.DATABASES['default']['NAME'],
+                user=settings.DATABASES['default']['USER'],
+                password=settings.DATABASES['default']['PASSWORD'],
+                host=settings.DATABASES['default']['HOST'],
+                port=settings.DATABASES['default']['PORT']
+            ) as conn:
+                with conn.cursor() as cursor:
+                    # Delete the session from the booked_sessions table
+                    cursor.execute("""
+                        DELETE FROM public.booked_sessions 
+                        WHERE id = %s AND user_id = %s
+                    """, (id, user[0]))  # Use request.user.id to get the user ID
+
+                    conn.commit()
+
+            return JsonResponse({'success': True, 'message': 'Order cancelled successfully.'})
+
+        except Exception as e:
+            print(f"Error cancelling order: {e}")
+            return JsonResponse({'success': False, 'message': 'An error occurred while cancelling the order.'}, status=500)
+
+    return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=400)

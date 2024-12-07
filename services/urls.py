@@ -10,7 +10,8 @@ from services.views import (
     service_status,
     service_job,
     get_subcategories,
-    join_category
+    join_category, 
+    cancel_order,
 )
 
 app_name = 'services'
@@ -27,4 +28,5 @@ urlpatterns = [
     path('service-job/', service_job, name='service_job'),
     path('api/subcategories/<int:category_id>/', get_subcategories, name='get_subcategories'),
     path('<int:category_id>/<int:subcategory_id>/join/', join_category, name='join_category'),
+    path('cancel_order/', cancel_order, name='cancel_order'),
 ]
