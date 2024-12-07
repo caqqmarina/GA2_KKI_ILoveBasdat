@@ -6,7 +6,7 @@ from django.conf import settings
 class PhoneNumberBackend(BaseBackend):
     def authenticate(self, request, phone_number=None, password=None):
         user_phone = request.session.get('user_phone')
-        
+
         if not user_phone:
             messages.error(request, "You need to log in first.")
             return None
@@ -20,22 +20,19 @@ class PhoneNumberBackend(BaseBackend):
                 port=settings.DATABASES['default']['PORT']
             ) as conn:
                 with conn.cursor() as cursor:
-                    # Check if user exists
                     cursor.execute("SELECT * FROM main_user WHERE phone_number = %s", (user_phone,))
                     user_data = cursor.fetchone()
                     
                     if not user_data:
                         messages.error(request, "User not found.")
                         return None
-                    
-                    # Create a user dictionary
+
                     user = {
                         'id': user_data[0],
-                        'name': user_data[1],  # Assuming name is the second field
+                        'name': user_data[1],
                         'password': user_data[2]
                     }
-                    
-                    # Check if user is a worker
+
                     cursor.execute("SELECT EXISTS(SELECT 1 FROM main_worker WHERE user_ptr_id = %s)", (user_data[0],))
                     is_worker = cursor.fetchone()[0]
                     
