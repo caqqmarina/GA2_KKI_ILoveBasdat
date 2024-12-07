@@ -526,7 +526,8 @@ CREATE TABLE public.main_user (
     is_superuser boolean NOT NULL,
     last_name character varying(150) NOT NULL,
     username character varying(150) NOT NULL,
-    mypay_balance numeric DEFAULT 0
+    mypay_balance numeric DEFAULT 0,
+    level character varying(10) DEFAULT 'Bronze'::character varying
 );
 
 
@@ -1252,11 +1253,11 @@ COPY public.main_transfertransaction (transaction_ptr_id, recipient_id) FROM std
 -- Data for Name: main_user; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.main_user (id, name, password, sex, phone_number, birth_date, address, last_login, date_joined, email, first_name, is_active, is_staff, is_superuser, last_name, username, mypay_balance) FROM stdin;
-2	min	pbkdf2_sha256$870000$OFPxDVoGsaAEquPjtlIVTG$eOlIL2BGduyH9OvIDugZH70UsOBBQFzaLxXpe0nSgX8=	female	12345678910	2005-05-06	jl.almadaniah 2no.12	\N	2024-11-17 21:53:34.510571+00			t	f	f		12345678910	0
-1	chiara aqmarina	pbkdf2_sha256$870000$B6dHLViPOoK1MLwfC6SUL9$+HOw5944C6MzAsqhnJb+Gq0OWrru9E8xy+aBuLEQQ9E=	female	0818802316	2006-05-06	jl. almadaniah 2 no.12	\N	2024-11-16 05:58:45.956328+00			t	f	f		0818802316	0
-3	christopher	pbkdf2_sha256$870000$n8fadZdGDGVx2ETToagN2U$EZNbd7lDmrK46bSKtpjNsbdk1kvxBLQVZ0PxOwOf2KM=	male	12345678	2005-05-06	jl. tanjung barat 3	\N	2024-11-18 12:01:15.701338+00			t	f	f		12345678	0
-4	linda	pbkdf2_sha256$870000$lVkFZZaJdGocazVmknXEGm$f0uJpLU806C66e7UnPQoB59kIWpHq2tt4fDACabu2GU=	female	123456789	2004-05-06	jl. pondok china	\N	2024-11-18 12:03:06.257811+00			t	f	f		123456789	0
+COPY public.main_user (id, name, password, sex, phone_number, birth_date, address, last_login, date_joined, email, first_name, is_active, is_staff, is_superuser, last_name, username, mypay_balance, level) FROM stdin;
+2	min	pbkdf2_sha256$870000$OFPxDVoGsaAEquPjtlIVTG$eOlIL2BGduyH9OvIDugZH70UsOBBQFzaLxXpe0nSgX8=	female	12345678910	2005-05-06	jl.almadaniah 2no.12	\N	2024-11-17 21:53:34.510571+00			t	f	f		12345678910	0	Bronze
+1	chiara aqmarina	pbkdf2_sha256$870000$B6dHLViPOoK1MLwfC6SUL9$+HOw5944C6MzAsqhnJb+Gq0OWrru9E8xy+aBuLEQQ9E=	female	0818802316	2006-05-06	jl. almadaniah 2 no.12	\N	2024-11-16 05:58:45.956328+00			t	f	f		0818802316	0	Bronze
+3	christopher	pbkdf2_sha256$870000$n8fadZdGDGVx2ETToagN2U$EZNbd7lDmrK46bSKtpjNsbdk1kvxBLQVZ0PxOwOf2KM=	male	12345678	2005-05-06	jl. tanjung barat 3	\N	2024-11-18 12:01:15.701338+00			t	f	f		12345678	0	Bronze
+4	linda	pbkdf2_sha256$870000$lVkFZZaJdGocazVmknXEGm$f0uJpLU806C66e7UnPQoB59kIWpHq2tt4fDACabu2GU=	female	123456789	2004-05-06	jl. pondok china	\N	2024-11-18 12:03:06.257811+00			t	f	f		123456789	0	Bronze
 \.
 
 
