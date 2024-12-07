@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate, login
 from django.shortcuts import render, redirect, get_object_or_404
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from .forms import UserRegistrationForm, WorkerRegistrationForm
+from .forms import TransactionForm, UserRegistrationForm, WorkerRegistrationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
 from django.http import HttpResponseRedirect
@@ -39,7 +39,6 @@ def authenticate(request):
                 cursor.execute("SELECT * FROM main_user WHERE phone_number = %s", (user_phone,))
                 user = cursor.fetchone()
                 
-                
                 if not user:
                     messages.error(request, "User not found.")
                     return None, False
@@ -47,7 +46,6 @@ def authenticate(request):
                 # Check if user is a worker
                 cursor.execute("SELECT EXISTS(SELECT 1 FROM main_worker WHERE user_ptr_id = %s)", (user[0],))
                 is_worker = cursor.fetchone()[0]
-                
                 return user, is_worker
                 
     except Exception as e:
@@ -78,7 +76,6 @@ def homepage(request):
     search_query = request.GET.get('search', '').strip()
     category_filter = request.GET.get('category', '').strip()
 
-    
     with psycopg2.connect(
         dbname=settings.DATABASES['default']['NAME'],
         user=settings.DATABASES['default']['USER'],
@@ -133,7 +130,6 @@ def homepage(request):
                         'name': subcategory_name,
                         'description': subcategory_description
                     })
-                    print(category_dict)
     
     context = {
         'user': user,
@@ -414,8 +410,8 @@ def buy_voucher(request, voucher_id):
     if request.method == 'POST':
         user = request.user
         try:
-            voucher = Voucher.objects.get(id=voucher_id)
-        except Voucher.DoesNotExist:
+            voucher = voucher.objects.get(id=voucher_id)
+        except voucher.DoesNotExist:
             messages.error(request, 'Voucher not found.')
             return HttpResponseRedirect(reverse('discount'))
 
@@ -443,10 +439,9 @@ def some_view(request):
     }
     return render(request, 'template_name.html', context)
 
-def profile_view(request):
-    user_phone = request.session.get('user_phone')
-    is_worker = request.session.get('is_worker', False)
-    
+def profile_view(request, worker_id=None):
+    user_phone = request.session.get('user_phone') if worker_id is None else None
+    is_worker = request.session.get('is_worker', False) if worker_id is None else True
     if not user_phone:
         messages.error(request, "Please log in first")
         return redirect('login')
@@ -538,27 +533,84 @@ def profile_view(request):
         messages.error(request, 'An error occurred while updating the profile.')
         return redirect('homepage')
     
+def worker_profile(request, worker_id):
+    # Get worker_id from the URL and check if the user is a worker
+    is_worker = request.session.get('is_worker', False)
+
+    try:
+        with psycopg2.connect(
+            dbname=settings.DATABASES['default']['NAME'],
+            user=settings.DATABASES['default']['USER'],
+            password=settings.DATABASES['default']['PASSWORD'],
+            host=settings.DATABASES['default']['HOST'],
+            port=settings.DATABASES['default']['PORT']
+        ) as conn:
+            with conn.cursor() as cursor:
+                # Get user data by worker_id
+                cursor.execute("""
+                    SELECT id, name, phone_number, sex, address
+                    FROM main_user 
+                    WHERE id = %s
+                """, (worker_id,))
+                user_data = cursor.fetchone()
+
+                if not user_data:
+                    messages.error(request, "Worker not found.")
+                    return redirect('services:worker_list')  # Redirect to worker list or any relevant page
+                
+                # Prepare context for template rendering
+                context = {
+                    'worker': {
+                        'id': user_data[0],
+                        'name': user_data[1],
+                        'phone_number': user_data[2],
+                        'sex': user_data[3],
+                        'address': user_data[4],
+                    },
+                }
+            # Render the profile page
+            return render(request, 'worker_profile.html', context)
+    
+    except Exception as e:
+        print(f"Error fetching worker details: {e}")
+        messages.error(request, "An error occurred while fetching worker details.")
+    
 def mypay(request):
-    # Dummy user data
-    user = {
-        'phone_number': '1234567890',
-        'mypay_balance': 1000,
-    }
+    # Database connection details
+    conn = psycopg2.connect(
+        dbname="your_database_name",
+        user="postgres",
+        password="your_password",
+        host="localhost",
+        port="5432"
+    )
+    cursor = conn.cursor()
 
-    # Dummy transactions data
-    transactions = [
-        {'amount': 100, 'date': '2024-11-18', 'category': 'TopUp'},
-        {'amount': 200, 'date': '2024-11-17', 'category': 'Service Payment'},
-    ]
+    # Get user details (replace '1' with a dynamic user ID)
+    user_query = "SELECT phone_number, mypay_balance FROM users WHERE id = %s;"
+    cursor.execute(user_query, (1,))
+    user = cursor.fetchone()  # Example: (1234567890, 1000)
 
-    form = TransactionForm()
+    # Fetch transaction history for the user
+    transaction_query = """
+        SELECT amount, date, category FROM transactions WHERE user_id = %s ORDER BY date DESC;
+    """
+    cursor.execute(transaction_query, (1,))
+    transactions = cursor.fetchall()  # Example: [(100, '2024-11-18', 'TopUp')]
 
+    # Close the connection
+    conn.close()
+
+    # Prepare context
     context = {
-        'user': user,
-        'is_worker': False,
-        'mypay_balance': user['mypay_balance'],
-        'transactions': transactions,
-        'form': form,
+        'user': {
+            'phone_number': user[0],
+            'mypay_balance': user[1],
+        },
+        'mypay_balance': user[1],
+        'transactions': [
+            {'amount': t[0], 'date': t[1], 'category': t[2]} for t in transactions
+        ],
     }
 
     return render(request, 'mypay.html', context)

@@ -20,4 +20,5 @@ urlpatterns = [
     path('profile/', views.profile_view, name='profile'),
     path('buy_voucher/<int:voucher_id>', views.buy_voucher, name="buy_voucher"),
     path('mypay/', views.mypay, name='mypay'),
+    path('profile/<int:worker_id>', views.worker_profile, name='worker_profile'),
 ]

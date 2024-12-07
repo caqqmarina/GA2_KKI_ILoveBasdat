@@ -32,16 +32,20 @@
         </div>
     </div>
 
+    <!-- Inline JavaScript -->
     <script>
+        // CSRF token setup
+        const csrfToken = '{{ csrf_token }}';
+
         // Populate subcategories dynamically based on category selection
-        $('#category').on('change', function() {
+        $('#category').on('change', function () {
             const categoryId = $(this).val();
             $('#subcategory').html('<option value="">Loading...</option>');
             if (categoryId) {
                 $.ajax({
                     url: `/api/subcategories/?category_id=${categoryId}`,
                     method: 'GET',
-                    success: function(data) {
+                    success: function (data) {
                         $('#subcategory').html('<option value="">All Subcategories</option>');
                         data.forEach(subcategory => {
                             $('#subcategory').append(`<option value="${subcategory.id}">${subcategory.name}</option>`);
@@ -54,7 +58,7 @@
         });
 
         // Fetch and display orders dynamically
-        $('#search-button').on('click', function() {
+        $('#search-button').on('click', function () {
             const category = $('#category').val();
             const subcategory = $('#subcategory').val();
 
@@ -62,7 +66,7 @@
             $.ajax({
                 url: `/api/orders/?category=${category}&subcategory=${subcategory}`,
                 method: 'GET',
-                success: function(data) {
+                success: function (data) {
                     let html = '';
                     if (data.length > 0) {
                         data.forEach(order => {
@@ -89,8 +93,8 @@
             $.ajax({
                 url: `/api/orders/${orderId}/accept/`,
                 method: 'POST',
-                headers: { 'X-CSRFToken': '{{ csrf_token }}' },
-                success: function(response) {
+                headers: { 'X-CSRFToken': csrfToken },
+                success: function (response) {
                     alert(response.message);
                     $('#search-button').click(); // Refresh order list
                 }
