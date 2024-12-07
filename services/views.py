@@ -277,8 +277,8 @@ def service_bookings(request):
                     if not existing_booking:
                         # Insert the session into the booked_sessions table if not already present
                         cursor.execute("""
-                            INSERT INTO public.booked_sessions (session_id, session_name, price, subcategory_id, subcategory_name, worker_name, status, action, user_id)
-                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                            INSERT INTO public.booked_sessions (session_id, session_name, price, subcategory_id, subcategory_name, worker_name, action, user_id)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                         """, (
                             booked_session[0],  # session_id
                             booked_session[1],  # session_name
@@ -286,7 +286,6 @@ def service_bookings(request):
                             booked_session[3],  # subcategory_id
                             booked_session[4],  # subcategory_name
                             'Default Worker',  # worker_name (replace with actual worker name if available)
-                            'Booked',          # status (can be updated later)
                             'None',            # action (can be updated later)
                             user[0]            # user_id
                         ))
