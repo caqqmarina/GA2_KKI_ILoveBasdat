@@ -26,7 +26,6 @@
     <div class="mt-10 border-2 border-black rounded p-4">
         <h2 class="text-xl font-bold mb-4">Service Session Option</h2>
         <div class="space-y-4">
-
             {% for session in sessions %}
             <div class="flex justify-between items-center border-2 border-black p-2">
                 <div class="flex items-center w-1/3">
@@ -42,7 +41,8 @@
                     <button type="button" 
                     class="px-6 py-2 bg-blue-500 text-white font-bold rounded hover:bg-blue-600 book-service-btn"
                     data-session-id="{{ session.id }}"
-                    data-subcategory-id="{{ subcategory.id }}">
+                    data-subcategory-id="{{ subcategory.id }}"
+                    data-price="{{ session.price }}">
                     Book Service
                     </button>
                 </form>
@@ -72,7 +72,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="block font-semibold">Total Amount:</label>
-                        <p class="border p-2">Rp xxx.xxx,xx</p>
+                        <p class="border p-2" id="priceDisplay">$0.00</p> <!-- Default -->
                     </div>
                     <div class="mb-3">
                         <label for="payment_method" class="block font-semibold">Payment Method:</label>
@@ -136,34 +136,49 @@
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const bookingModal = document.getElementById("bookingModal");
-        const bookServiceButtons = document.querySelectorAll(".book-service-btn");
+        const bookServiceButtons = document.querySelectorAll(".book-service-btn, .book-service-button");
         const closeModalButton = document.getElementById("closeModal");
         const modalSessionId = document.getElementById("modalSessionId");
         const modalSubcategoryId = document.getElementById("modalSubcategoryId");
         const orderDateDisplay = document.getElementById("orderDateDisplay");
-    
+        const priceDisplay = document.getElementById("priceDisplay");
+
         // Show modal when any "Book Service" button is clicked
         bookServiceButtons.forEach(button => {
             button.addEventListener("click", () => {
                 // Set the hidden input values from the button's data attributes
-                modalSessionId.value = button.dataset.sessionId;
-                modalSubcategoryId.value = button.dataset.subcategoryId;
-                
+                const sessionId = button.dataset.sessionId;
+                const subcategoryId = button.dataset.subcategoryId;
+                const sessionName = button.dataset.sessionName; // Optional
+                const price = button.dataset.price;
+
+                modalSessionId.value = sessionId;
+                modalSubcategoryId.value = subcategoryId;
+
+                // Update the price display
+                if (price) {
+                    priceDisplay.textContent = `$${price}`;
+                } else {
+                    console.warn("Price not set for this session button.");
+                    priceDisplay.textContent = "$0.00";
+                }
+
                 // Update the order date
                 orderDateDisplay.textContent = getCurrentDate();
-    
+
                 // Show modal
                 bookingModal.classList.remove("hidden");
                 bookingModal.classList.add("flex");
             });
         });
-    
+
         // Hide modal when close button is clicked
         closeModalButton.addEventListener("click", () => {
             bookingModal.classList.add("hidden");
             bookingModal.classList.remove("flex");
         });
-    
+
+        // Helper function to get the current date in desired format
         function getCurrentDate() {
             const now = new Date();
             const day = String(now.getDate()).padStart(2, "0");
@@ -173,42 +188,6 @@
             const minutes = String(now.getMinutes()).padStart(2, "0");
             return `${year}-${month}-${day} ${hours}:${minutes}`;
         }
-    });
-
-    document.addEventListener("DOMContentLoaded", function() {
-        // Get all the join buttons
-        const joinButtons = document.querySelectorAll("#joinButton");
-
-        // Add event listeners for each button
-        joinButtons.forEach(button => {
-            button.addEventListener("click", function() {
-                const categoryId = button.getAttribute("data-category-id");
-                const subcategoryId = button.getAttribute("data-subcategory-id");
-
-                // Send an AJAX POST request to join the category
-                fetch(`/services/${categoryId}/${subcategoryId}/join/`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": "{{ csrf_token }}"
-                    },
-                    body: JSON.stringify({ category_id: categoryId, subcategory_id: subcategoryId })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert(data.message); // Success message
-                        location.reload(); // Reload the page after successful request
-                    } else {
-                        alert("Error: " + data.message); // Error message
-                    }
-                })
-                .catch(error => {
-                    console.error("Error:", error);
-                    alert("An error occurred. Please try again.");
-                });
-            });
-        });
     });
 </script>
 

@@ -19,8 +19,8 @@
             <label for="subcategory" class="mr-2 font-semibold">Subcategory</label>
             <select id="subcategory" name="subcategory" class="border border-gray-400 rounded px-3 py-2">
                 <option value="">Select Subcategory</option>
-                {% for subcategory in unique_subcategories %}
-                    <option value="subcategory1">{{ subcategory.name }}</option>
+                {% for subcategory_name in unique_subcategories %}
+                    <option value="subcategory1">{{ subcategory_name }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -63,12 +63,11 @@
             <tbody>
                 {% for session in booked_sessions %}
                 <tr class="border-t">
-                    <td class="px-4 py-2">{{ session.subcategory.name }}</td>
+                    <td class="px-4 py-2">{{ session.subcategory_name }}</td>
                     <td class="px-4 py-2">{{ session.session }}</td>
                     <td class="px-4 py-2">${{ session.price }}</td>
-                    <!-- Temporary data for Worker Name, Status, and Action -->
-                    <td class="px-4 py-2">John Doe</td>  <!-- Temporary worker name -->
-                    <td class="px-4 py-2">Completed</td>
+                    <td class="px-4 py-2"> - </td> <!-- Placeholder -->
+                    <td class="px-4 py-2"> - </td>
                     <td class="px-4 py-2">
                         <button class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600" onclick="openModal()">Create Testimonial</button>
                     </td>

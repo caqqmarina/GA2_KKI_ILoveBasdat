@@ -267,19 +267,44 @@ def service_bookings(request):
                 booked_session_ids = request.session.get('booked_sessions', [])
                 
                 if booked_session_ids:
-                    # Retrieve booked sessions based on stored session IDs
-                    cursor.execute("SELECT id, session, price, subcategory_id FROM services_servicesession WHERE id IN %s", (tuple(booked_session_ids),))
+                    # Retrieve booked sessions along with subcategory names based on stored session IDs
+                    cursor.execute("""
+                        SELECT 
+                            s.id AS session_id, 
+                            s.session AS session_name, 
+                            s.price, 
+                            sc.id AS subcategory_id, 
+                            sc.name AS subcategory_name
+                        FROM 
+                            services_servicesession s
+                        INNER JOIN 
+                            services_subcategory sc ON s.subcategory_id = sc.id
+                        WHERE 
+                            s.id IN %s
+                    """, (tuple(booked_session_ids),))
                     booked_sessions = cursor.fetchall()
                 else:
                     booked_sessions = []
 
-                # Get unique subcategories from the booked sessions
-                unique_subcategories = {session[3] for session in booked_sessions}  # Subcategory ID is the 4th column (index 3)
+                # Convert to a list of dictionaries
+                booked_sessions_data = [
+                    {
+                        'session_id': session[0],
+                        'session': session[1],
+                        'price': session[2],
+                        'subcategory_id': session[3],
+                        'subcategory_name': session[4],
+                    }
+                    for session in booked_sessions
+                ]
 
+            # Get unique subcategories from the booked sessions
+            unique_subcategories = {session[4] for session in booked_sessions}  # Subcategory ID is the 4th column (index 3)
+        
         context = {
             'user_name': user,
             'is_worker': is_worker,
-            'booked_sessions': booked_sessions,
+            'booked_sessions': booked_sessions_data,
             'unique_subcategories': unique_subcategories,
             'user_name': user_name,
         }
