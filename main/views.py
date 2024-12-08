@@ -18,6 +18,11 @@ import uuid
 import logging
 from .utils import get_user_name
 from psycopg2.errors import UniqueViolation, RaiseException
+import psycopg2
+from django.http import JsonResponse
+from django.conf import settings
+import json
+
 
 def authenticate(request):
     user_phone = request.session.get('user_phone')
@@ -412,6 +417,60 @@ def discount_page(request):
     except Exception as e:
         print(f"Error occurred: {e}")
         return redirect('error_page')
+
+def validate_discount(request):
+    if request.method == 'POST':
+        try:
+            # Parse JSON data from the request body
+            data = json.loads(request.body)
+            discount_code = data.get('discount_code')  # Get the discount code from the JSON payload
+
+            if not discount_code:
+                return JsonResponse({'valid': False, 'message': 'No discount code provided'}, status=400)
+
+            # Establish database connection using psycopg2
+            with psycopg2.connect(
+                dbname=settings.DATABASES['default']['NAME'],
+                user=settings.DATABASES['default']['USER'],
+                password=settings.DATABASES['default']['PASSWORD'],
+                host=settings.DATABASES['default']['HOST'],
+                port=settings.DATABASES['default']['PORT']
+            ) as conn:
+                with conn.cursor() as cursor:
+                    # Check if the code exists in main_promo table
+                    cursor.execute("SELECT discount_amount FROM main_promo WHERE code = %s", (discount_code,))
+                    promo = cursor.fetchone()
+
+                    # Check if the code exists in main_voucher table
+                    cursor.execute("SELECT discount FROM main_voucher WHERE code = %s", (discount_code,))
+                    voucher = cursor.fetchone()
+
+                    if promo:
+                        # Valid promo code
+                        return JsonResponse({
+                            'valid': True,
+                            'discount_amount': promo[0],
+                            'type': 'promo',  # Indicate it's a promo
+                        })
+                    elif voucher:
+                        # Valid voucher code
+                        return JsonResponse({
+                            'valid': True,
+                            'discount_amount': voucher[0],
+                            'type': 'voucher',  # Indicate it's a voucher
+                        })
+                    else:
+                        # Invalid code
+                        return JsonResponse({
+                            'valid': False,
+                            'message': 'Invalid discount code.'
+                        })
+
+        except Exception as e:
+            print(f"Error occurred while validating the discount: {e}")
+            return JsonResponse({'valid': False, 'message': 'An error occurred while processing the discount.'}, status=500)
+
+    return JsonResponse({'valid': False, 'message': 'Invalid request method.'}, status=400)
 
 def buy_voucher(request, voucher_id):
     if request.method == 'POST':
