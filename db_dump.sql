@@ -1101,8 +1101,9 @@ COPY public.auth_user_user_permissions (id, user_id, permission_id) FROM stdin;
 --
 
 COPY public.booked_sessions (id, session_id, session_name, price, subcategory_id, subcategory_name, worker_name, status, action, booked_at, user_id) FROM stdin;
-67	13	3 hours	625.00	3	Specialized Cleaning	Default Worker	Searching for Nearest Workers	None	2024-12-07 17:01:29.561432	1
-73	2	2 hours	300.00	1	General Cleaning	Default Worker	Waiting for Payment	None	2024-12-07 18:59:25.238249	1
+71	6	1 hour	200.00	2	Deep Cleaning	Default Worker	Waiting for Payment	None	2024-12-08 16:39:35.406566	1
+72	22	5 hours	950.00	5	Commercial Deep Cleaning	Default Worker	Waiting for Payment	None	2024-12-08 16:39:40.079161	1
+73	29	2 hours	500.00	9	Aromatherapy	Default Worker	Waiting for Payment	None	2024-12-08 16:39:44.049438	1
 \.
 
 
@@ -1214,6 +1215,7 @@ g3me9tvbatr224fq05w3ib5dyfaml74b	eyJ1c2VyX3Bob25lIjoiMDgxODgwMjMxNiIsImlzX2F1dGh
 xchkpq2pwfa410oxrnczwumm6wz7gqwh	.eJw1y0sKgCAURuG9_OMm9s6tREjlBUXwhldpEO29CBqcyQfnQhFK5nAcCRqqbtquH8YJFbyYtWRHMft9zWShcyr0-ckpUPphYw5kjZCI5yjQM9T7D2-qxXI_nBggtA:1tD0TL:nOnhERB1S4rSKnXTGvJpCpqLVzc4NwUd1vHOunxK67k	2024-12-02 12:03:15.380844+00
 whx3s3h0btatcmmfovl2qfqgf9kqbdnn	.eJwdy0EKgzAQBdC7_LULTaGEXEUkxGbUEMmUmYQi0rvXun3wTjQl8e-NC8Ght4O1vXkMT3RI6kOrG5WaXqFShKvS6PYPSyaBW8Kul8zMmaJXUk1cFG6cOmib_21lOXy6Mgy-PzFkJio:1tJy6U:vrx9v1A3N-11Yudd-_rzza-VLTjgfOYsvlwxK0QnWE0	2024-12-21 16:56:26.859637+00
 qevrieg7y0qso35vmve0auarfjzyui5j	.eJwdy0EKgzAQBdC7_LUL04KEXKWUEM1UgyVTZhJExLs3un3wDlQl8b-FM8Ght8ba_vE0Azok9aGWhXJJUygU4YpUun1jWUngPuGrTUbmlaJXUk2cFe4Fg3cHreM1Z5bdp_abnn-X4iae:1tHluY:YB6HvmHOzyfLK9hf25YtOQXSYmNdH3zersZoHoAdHTg	2024-12-15 15:31:02.79877+00
+seyx1qfsc1ehwc2zj44jk6hib69umjc0	eyJ1c2VyX3Bob25lIjoiMDgxODgwMjMxNiIsImlzX2F1dGhlbnRpY2F0ZWQiOnRydWUsImlzX3dvcmtlciI6ZmFsc2V9:1tKJsS:Vj-rUEiSv6lGrgYRbUSYh4IXmoodtquST9yto7jksIc	2024-12-22 16:11:24.25895+00
 \.
 
 
@@ -1282,6 +1284,10 @@ COPY public.main_user_user_permissions (id, user_id, permission_id) FROM stdin;
 --
 
 COPY public.main_voucher (id, code, discount, min_transaction, validity_days, user_quota, price) FROM stdin;
+1	VOUCHER1	10.00	50.00	30	100	5.00
+2	VOUCHER2	15.00	100.00	60	200	8.00
+3	VOUCHER3	20.00	150.00	45	300	10.00
+4	VOUCHER4	5.00	20.00	15	50	2.00
 \.
 
 
@@ -1476,7 +1482,7 @@ SELECT pg_catalog.setval('public.auth_user_user_permissions_id_seq', 1, false);
 -- Name: booked_sessions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.booked_sessions_id_seq', 68, true);
+SELECT pg_catalog.setval('public.booked_sessions_id_seq', 73, true);
 
 
 --
