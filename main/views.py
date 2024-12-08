@@ -361,7 +361,7 @@ def discount_page(request):
             'discount': 10.00,  # 10% discount
             'min_transaction_order': 50.00,  # Minimum transaction order: $50
             'valid_days': 30,  # Valid for 30 days
-            'user_quota': 100,  # Maximum 100 users can use this voucher
+            'user_quota': 100,  # Maximum 100 users can use this voucherq
             'price': 5.00  # Voucher price: $5
         },
         {

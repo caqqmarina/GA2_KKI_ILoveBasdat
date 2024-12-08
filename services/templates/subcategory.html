@@ -146,26 +146,24 @@
         const modalSubcategoryId = document.getElementById("modalSubcategoryId");
         const orderDateDisplay = document.getElementById("orderDateDisplay");
         const priceDisplay = document.getElementById("priceDisplay");
+        const discountInput = document.getElementById("discount");
+        const applyDiscountButton = document.getElementById("applyDiscountButton");
+
+        let originalPrice = 0; // Store the original price
 
         // Show modal when any "Book Service" button is clicked
         bookServiceButtons.forEach(button => {
             button.addEventListener("click", () => {
-                // Set the hidden input values from the button's data attributes
                 const sessionId = button.dataset.sessionId;
                 const subcategoryId = button.dataset.subcategoryId;
-                const sessionName = button.dataset.sessionName; // Optional
-                const price = button.dataset.price;
+                const price = parseFloat(button.dataset.price);
 
                 modalSessionId.value = sessionId;
                 modalSubcategoryId.value = subcategoryId;
 
                 // Update the price display
-                if (price) {
-                    priceDisplay.textContent = `$${price}`;
-                } else {
-                    console.warn("Price not set for this session button.");
-                    priceDisplay.textContent = "$0.00";
-                }
+                originalPrice = price;
+                priceDisplay.textContent = `$${price.toFixed(2)}`;
 
                 // Update the order date
                 orderDateDisplay.textContent = getCurrentDate();
@@ -180,6 +178,43 @@
         closeModalButton.addEventListener("click", () => {
             bookingModal.classList.add("hidden");
             bookingModal.classList.remove("flex");
+        });
+
+        // Handle discount application
+        applyDiscountButton.addEventListener("click", () => {
+            const discountCode = discountInput.value.trim();
+            if (!discountCode) {
+                alert("Please enter a discount code.");
+                return;
+            }
+
+            // Mock server request to validate the discount
+            fetch('/services/validate_discount/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}' // Include CSRF token
+                },
+                body: JSON.stringify({
+                    code: discountCode,
+                    session_id: modalSessionId.value
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.valid) {
+                    const discountAmount = data.discount_amount || 0;
+                    const discountedPrice = originalPrice - discountAmount;
+                    priceDisplay.textContent = `$${Math.max(discountedPrice, 0).toFixed(2)}`;
+                    alert(`Discount applied! You saved $${discountAmount.toFixed(2)}`);
+                } else {
+                    alert("Invalid discount code.");
+                }
+            })
+            .catch(error => {
+                console.error("Error applying discount:", error);
+                alert("An error occurred while applying the discount.");
+            });
         });
 
         // Helper function to get the current date in desired format
