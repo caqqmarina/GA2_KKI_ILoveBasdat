@@ -1,5 +1,7 @@
 {% extends 'base.html' %}
+
 {% block content %}
+
 {% include 'navbar1.html' %}
 
 <!-- Box Container -->
@@ -42,37 +44,19 @@
                     <td class="px-4 py-2">{{ voucher.user_quota }}</td>
                     <td class="px-4 py-2">${{ voucher.price }}</td>
                     <td>
-                        <form method="post" action="{% url 'buy_voucher' 1%}">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-primary bg-blue-500 text-white px-4 py-1 rounded">Buy</button>
-                        </form>
+                        <button class="btn btn-primary bg-blue-500 text-white px-4 py-1 rounded" 
+                            onclick="openPaymentModal('{{ voucher.id }}', '{{ voucher.code }}', {{ voucher.price }}, {{ voucher.validity_days }}, {{ voucher.user_quota }})">
+                            Buy
+                        </button>
                     </td>
                 </tr>
                 {% empty %}
                 <tr class="border-t">
-                    <td colspan="7" class="px-4 py-2 text-center">No Discounts.</td>
+                    <td colspan="7" class="px-4 py-2 text-center">No Vouchers Available.</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
-    </div>
-
-    <!-- Success Modal -->
-    <div id="successModal" class="modal hidden fixed top-0 left-0 w-full h-full bg-gray-800 bg-opacity-50 flex items-center justify-center">
-        <div class="modal-content bg-white p-4 rounded-lg">
-            <h2 class="text-green-500">Purchase Successful</h2>
-            <p id="successMessage">You have successfully purchased the voucher.</p>
-            <button id="closeSuccess" class="bg-green-500 text-white px-4 py-2 rounded">Close</button>
-        </div>
-    </div>
-
-    <!-- Failure Modal -->
-    <div id="failureModal" class="modal hidden fixed top-0 left-0 w-full h-full bg-gray-800 bg-opacity-50 flex items-center justify-center">
-        <div class="modal-content bg-white p-4 rounded-lg">
-            <h2 class="text-red-500">Purchase Failed</h2>
-            <p id="failureMessage">Insufficient balance to purchase the voucher.</p>
-            <button id="closeFailure" class="bg-red-500 text-white px-4 py-2 rounded">Close</button>
-        </div>
     </div>
 
     <!-- Promo Label -->
@@ -103,27 +87,172 @@
             </tbody>
         </table>
     </div>
+
+    <!-- Payment Modal -->
+    <div id="paymentModal" class="hidden fixed top-0 left-0 w-full h-full bg-gray-800 bg-opacity-50 flex items-center justify-center z-100">
+        <div class="modal-content bg-white p-4 rounded-lg">
+            <h2 class="text-center text-lg font-bold mb-4">Select Payment Method</h2>
+            <form id="paymentForm">
+                <input type="hidden" id="voucherId">
+                <input type="hidden" id="voucherPrice">
+                <input type="hidden" id="voucherCode">
+                <input type="hidden" id="voucherValidityDays">
+                <input type="hidden" id="voucherUserQuota">
+
+
+                <label for="paymentMethod" class="block font-semibold mb-2">Choose Payment Method</label>
+                <select id="paymentMethod" class="border w-full p-2 mb-4">
+                    <option value="MyPay">MyPay</option>
+                </select>
+
+                <button type="button" id="confirmPayment" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                    Confirm Payment
+                </button>
+                <button type="button" id="closeModal" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+                    Close
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="modal hidden fixed top-0 left-0 w-full h-full bg-gray-800 bg-opacity-50 flex items-center justify-center">
+        <div class="modal-content bg-white rounded-lg flex flex-col items-center justify-center" style="width: 300px; height: 300px;">
+            <!-- Content Container -->
+            <div class="text-container text-center px-4 py-4">
+                <h2 class="text-green-500 text-lg font-bold mb-4">Purchase Successful</h2>
+                <p class="text-sm">
+                    Congrats!! You have successfully bought a voucher with the code 
+                    <span id="voucherCode" class="font-bold">XXX</span>. 
+                    This voucher can be used until 
+                    <span id="voucherExpiry" class="font-bold">XX/XX/XXXX</span> 
+                    with <span id="voucherQuota" class="font-bold">X</span> number of usage quota.
+                </p>
+            </div>
+            <!-- Button -->
+            <button id="closeSuccess" class="bg-green-500 text-white px-4 py-2 rounded mt-6">Close</button>
+        </div>
+    </div>
+
+    <!-- Failure Modal -->
+    <div id="failureModal" class="modal hidden fixed top-0 left-0 w-full h-full bg-gray-800 bg-opacity-50 flex items-center justify-center">
+        <div class="modal-content bg-white rounded-lg flex flex-col items-center justify-center" style="width: 300px; height: 300px;">
+            <!-- Content Container -->
+            <div class="text-container text-center px-4 py-4">
+                <h2 class="text-red-500 text-lg font-bold mb-4">Purchase Failure</h2>
+                <p class="text-sm">
+                    Sorry, your balance is not enough to buy this voucher.
+                </p>
+            </div>
+            <!-- Button -->
+            <button id="closeFailure" class="bg-red-500 text-white px-4 py-2 rounded mt-6">Close</button>
+        </div>
+    </div>
 </div>
 
 <script>
-    {% if messages %}
-    {% for message in messages %}
-        {% if message.tags == 'success' %}
-            // Display Success Modal
-            document.getElementById('successMessage').textContent = '{{ message }}';
-            document.getElementById('successModal').classList.remove('hidden');
-        {% elif message.tags == 'error' %}
-            // Display Failure Modal
-            document.getElementById('failureMessage').textContent = '{{ message }}';
-            document.getElementById('failureModal').classList.remove('hidden');
-        {% endif %}
-    {% endfor %}
-    {% endif %}
+    // Open Payment Modal when Buy button is clicked
+    function openPaymentModal(voucherId, voucherCode, voucherPrice, validityDays, userQuota) {
+        // Set the hidden fields with the voucher details
+        document.getElementById('voucherId').value = voucherId;
+        document.getElementById('voucherPrice').value = voucherPrice;
+        document.getElementById('voucherCode').value = voucherCode;
+        document.getElementById('voucherValidityDays').value = validityDays;
+        document.getElementById('voucherUserQuota').value = userQuota;
 
-    // Close Modals
+        // Show the payment modal
+        document.getElementById('paymentModal').classList.remove('hidden');
+
+    }
+    
+    // Close modals
+    document.getElementById('closeModal').addEventListener('click', function () {
+        document.getElementById('paymentModal').classList.add('hidden');
+    });
+
+    // Handle Confirm Payment Action
+    document.getElementById('confirmPayment').addEventListener('click', function () {
+        const voucherId = document.getElementById('voucherId').value;
+        const voucherPrice = parseFloat(document.getElementById('voucherPrice').value);
+        const voucherCode = document.getElementById('voucherCode').value;
+        const validityDays = parseInt(document.getElementById('voucherValidityDays').value);
+        const userQuota = document.getElementById('voucherUserQuota').value;
+        const paymentMethod = document.getElementById('paymentMethod').value;
+
+        if (paymentMethod === 'MyPay') {
+            // Call the server to check if the user has enough balance to purchase with MyPay
+            fetch('/check_balance/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}' // Include CSRF token
+                },
+                body: JSON.stringify({ voucherPrice: voucherPrice })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.valid) {
+                    // Proceed with the voucher purchase
+                    fetch(`/buy_voucher/${voucherId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.success) {
+                            // Open success modal after purchase
+                            openSuccessModal(voucherCode, validityDays, userQuota);
+                        } else {
+                            // Handle failure
+                            alert('Purchase failed.');
+                        }
+                    });
+                } else {
+                    // Insufficient balance
+                    document.getElementById('failureModal').classList.remove('hidden');
+                }
+            })
+            .catch(error => {
+                console.error('Error checking balance:', error);
+                alert('An error occurred while processing your payment.');
+            });
+        } else {
+            alert('Only MyPay is allowed as a payment method.');
+        }
+    });
+
+    function openSuccessModal(voucherCode, validityDays, userQuota) {
+        // Calculate expiry date based on voucher validity
+        const today = new Date();
+        const expiryDate = new Date();
+        expiryDate.setDate(today.getDate() + validityDays);  // Add the validity days to today's date
+
+        // Format the expiry date as MM/DD/YYYY
+        const formattedExpiry = `${expiryDate.getMonth() + 1}/${expiryDate.getDate()}/${expiryDate.getFullYear()}`;
+
+        // Ensure the element exists and update content
+        const voucherCodeElement = document.getElementById('voucherCode');
+        if (voucherCodeElement) {
+            voucherCodeElement.textContent = voucherCode;
+            console.log("Voucher Code set in modal: ", voucherCodeElement.textContent);  // Log the updated value
+        } else {
+            console.log("Voucher Code element not found.");
+        }
+
+        document.getElementById('voucherExpiry').textContent = formattedExpiry;
+        document.getElementById('voucherQuota').textContent = userQuota;
+
+        // Show the success modal
+        document.getElementById('successModal').classList.remove('hidden');
+    }
+
     document.getElementById('closeSuccess').addEventListener('click', function () {
         document.getElementById('successModal').classList.add('hidden');
     });
+
     document.getElementById('closeFailure').addEventListener('click', function () {
         document.getElementById('failureModal').classList.add('hidden');
     });
