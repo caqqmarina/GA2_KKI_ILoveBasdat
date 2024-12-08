@@ -82,7 +82,7 @@ import dj_database_url
 
 DATABASES = {
     'default': dj_database_url.config(
-        default=os.getenv('DATABASE_URL', 'postgres://postgres:postgres@localhost:5432/postgres'),  # Fallback to local if DATABASE_URL is not set
+        default=os.getenv('DATABASE_URL', 'postgres://postgres:postgres@localhost:5432/postgres'), 
         engine='django.db.backends.postgresql',
     )
 }

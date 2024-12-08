@@ -51,10 +51,18 @@ def authenticate(request):
                 # Check if user is a worker
                 cursor.execute("SELECT EXISTS(SELECT 1 FROM main_worker WHERE user_ptr_id = %s)", (user[0],))
                 is_worker = cursor.fetchone()[0]
-                return user, is_worker
                 
-    except Exception as e:
-        print(f"Authentication error: {e}")
+                # Fetch user's mypay_balance as an integer
+                cursor.execute("SELECT mypay_balance FROM main_user WHERE id = %s", (user[0],))
+                mypay_balance = cursor.fetchone()[0]
+                
+                # Return user with mypay_balance
+                user = list(user)
+                user.append(mypay_balance)
+                
+                return user, is_worker
+    except psycopg2.Error as e:
+        messages.error(request, f"Database error: {e}")
         return None, False
     
 def homepage(request):
@@ -516,6 +524,10 @@ def buy_voucher(request, voucher_id):
 
     return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=400)
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 def check_mypay_balance(request):
     user, is_worker = authenticate(request)  # Check authentication
 
@@ -531,13 +543,14 @@ def check_mypay_balance(request):
                 return JsonResponse({'valid': False, 'message': 'Voucher price not provided'}, status=400)
 
             # Fetch user's balance
-            user_balance = user[16]  # Assuming user[16] stores `mypay_balance`
+            user_balance = user[-1]  # Assuming the last element in user is `mypay_balance`
             if user_balance >= voucher_price:
                 return JsonResponse({'valid': True})
             else:
                 return JsonResponse({'valid': False, 'message': 'Insufficient balance'})
 
         except Exception as e:
+            logger.error(f"Error in check_mypay_balance: {e}")
             return JsonResponse({'valid': False, 'message': f'Error: {str(e)}'}, status=500)
 
     return JsonResponse({'valid': False, 'message': 'Invalid request method'}, status=400)
