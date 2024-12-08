@@ -78,21 +78,13 @@ WSGI_APPLICATION = 'GA2_KKI_IloveBasdat.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
-        'USER': 'postgres',
-        'PASSWORD': 'postgres',
-        'HOST': 'localhost',  # This should match the service name in docker-compose.yaml
-        'PORT': '5432',
-    }
-}
-
 import dj_database_url
 
 DATABASES = {
-    'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))
+    'default': dj_database_url.config(
+        default=os.getenv('DATABASE_URL', 'postgres://postgres:postgres@localhost:5432/postgres'),  # Fallback to local if DATABASE_URL is not set
+        engine='django.db.backends.postgresql',
+    )
 }
 
 # Password validation
