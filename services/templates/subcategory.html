@@ -60,6 +60,7 @@
                     {% csrf_token %}
                     <input type="hidden" name="session_id" id="modalSessionId">
                     <input type="hidden" name="subcategory_id" id="modalSubcategoryId">
+                    <input type="hidden" name="final_price" id="finalPriceInput">
 
                     <div class="mb-3">
                         <span class="font-semibold">Order Date:</span>
@@ -140,7 +141,7 @@
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const bookingModal = document.getElementById("bookingModal");
-        const bookServiceButtons = document.querySelectorAll(".book-service-btn, .book-service-button");
+        const bookServiceButtons = document.querySelectorAll(".book-service-btn");
         const closeModalButton = document.getElementById("closeModal");
         const modalSessionId = document.getElementById("modalSessionId");
         const modalSubcategoryId = document.getElementById("modalSubcategoryId");
@@ -148,10 +149,12 @@
         const priceDisplay = document.getElementById("priceDisplay");
         const discountInput = document.getElementById("discount");
         const applyDiscountButton = document.getElementById("applyDiscountButton");
+        const finalPriceInput = document.getElementById("finalPriceInput"); // Hidden input for final price
 
-        let originalPrice = 0; // Store the original price
+        let originalPrice = 0;
+        let finalPrice = 0;
 
-        // Show modal when any "Book Service" button is clicked
+        // Show modal when "Book Service" button is clicked
         bookServiceButtons.forEach(button => {
             button.addEventListener("click", () => {
                 const sessionId = button.dataset.sessionId;
@@ -161,26 +164,24 @@
                 modalSessionId.value = sessionId;
                 modalSubcategoryId.value = subcategoryId;
 
-                // Update the price display
+                // Update price and finalPrice
                 originalPrice = price;
+                finalPrice = originalPrice;
                 priceDisplay.textContent = `$${price.toFixed(2)}`;
 
-                // Update the order date
                 orderDateDisplay.textContent = getCurrentDate();
 
-                // Show modal
                 bookingModal.classList.remove("hidden");
                 bookingModal.classList.add("flex");
             });
         });
 
-        // Hide modal when close button is clicked
         closeModalButton.addEventListener("click", () => {
             bookingModal.classList.add("hidden");
             bookingModal.classList.remove("flex");
         });
 
-        // Handle discount application
+        // Apply discount
         applyDiscountButton.addEventListener("click", () => {
             const discountCode = discountInput.value.trim();
             if (!discountCode) {
@@ -188,24 +189,25 @@
                 return;
             }
 
-            // Mock server request to validate the discount
-            fetch('/services/validate_discount/', {
+            fetch('/validate_discount/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token }}' // Include CSRF token
+                    'X-CSRFToken': '{{ csrf_token }}'
                 },
                 body: JSON.stringify({
-                    code: discountCode,
+                    discount_code: discountCode,
                     session_id: modalSessionId.value
                 })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.valid) {
-                    const discountAmount = data.discount_amount || 0;
-                    const discountedPrice = originalPrice - discountAmount;
-                    priceDisplay.textContent = `$${Math.max(discountedPrice, 0).toFixed(2)}`;
+                    const discountAmount = parseFloat(data.discount_amount) || 0;
+                    finalPrice = originalPrice - discountAmount;
+
+                    // Update the price display
+                    priceDisplay.textContent = `$${Math.max(finalPrice, 0).toFixed(2)}`;
                     alert(`Discount applied! You saved $${discountAmount.toFixed(2)}`);
                 } else {
                     alert("Invalid discount code.");
@@ -215,6 +217,12 @@
                 console.error("Error applying discount:", error);
                 alert("An error occurred while applying the discount.");
             });
+        });
+
+        // Before submitting the form, set the finalPrice to the hidden input
+        const bookingForm = document.getElementById("bookingForm");
+        bookingForm.addEventListener("submit", () => {
+            finalPriceInput.value = finalPrice; // Set finalPrice in hidden input
         });
 
         // Helper function to get the current date in desired format
@@ -228,8 +236,6 @@
             return `${year}-${month}-${day} ${hours}:${minutes}`;
         }
     });
-</script>
 
-<br>
-<br>
+</script>
 {% endblock content %}

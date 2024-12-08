@@ -245,6 +245,7 @@ def service_bookings(request):
                 if request.method == "POST":
                     session_id = request.POST.get('session_id')
                     subcategory_id = request.POST.get('subcategory_id')
+                    final_price = request.POST.get('final_price')
 
                     if not session_id:
                         messages.error(request, "No session selected.")
@@ -282,7 +283,7 @@ def service_bookings(request):
                         """, (
                             booked_session[0],  # session_id
                             booked_session[1],  # session_name
-                            booked_session[2],  # price
+                            final_price,  # price
                             booked_session[3],  # subcategory_id
                             booked_session[4],  # subcategory_name
                             'Default Worker',  # worker_name (replace with actual worker name if available)
@@ -298,7 +299,7 @@ def service_bookings(request):
                     SELECT 
                         s.id AS session_id, 
                         s.session AS session_name, 
-                        s.price, 
+                        bs.price, 
                         sc.id AS subcategory_id, 
                         sc.name AS subcategory_name,
                         bs.worker_name AS worker_name,
