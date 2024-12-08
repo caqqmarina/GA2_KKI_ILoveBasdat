@@ -149,10 +149,11 @@
         const priceDisplay = document.getElementById("priceDisplay");
         const discountInput = document.getElementById("discount");
         const applyDiscountButton = document.getElementById("applyDiscountButton");
-        const finalPriceInput = document.getElementById("finalPriceInput"); // Hidden input for final price
+        const finalPriceInput = document.getElementById("finalPriceInput");
 
         let originalPrice = 0;
         let finalPrice = 0;
+        let appliedDiscounts = []; // Array to store multiple applied discount amounts
 
         // Show modal when "Book Service" button is clicked
         bookServiceButtons.forEach(button => {
@@ -189,6 +190,7 @@
                 return;
             }
 
+            // Send the discount code to the server to check
             fetch('/validate_discount/', {
                 method: 'POST',
                 headers: {
@@ -204,13 +206,14 @@
             .then(data => {
                 if (data.valid) {
                     const discountAmount = parseFloat(data.discount_amount) || 0;
-                    finalPrice = originalPrice - discountAmount;
+                    appliedDiscounts.push(discountAmount); // Add the discount to the array
 
-                    // Update the price display
+                    // Update the final price with the new discount
+                    finalPrice = originalPrice - appliedDiscounts.reduce((acc, curr) => acc + curr, 0);
                     priceDisplay.textContent = `$${Math.max(finalPrice, 0).toFixed(2)}`;
                     alert(`Discount applied! You saved $${discountAmount.toFixed(2)}`);
                 } else {
-                    alert("Invalid discount code.");
+                    alert(data.message);
                 }
             })
             .catch(error => {
