@@ -293,7 +293,7 @@ def service_bookings(request):
 
                     # Redirect to service bookings page after successful booking
                     return redirect('services:service_bookings')
-
+                
                 cursor.execute("""
                     SELECT 
                         s.id AS session_id, 
