@@ -14,37 +14,40 @@
 
     <!-- Filters -->
     <div class="mt-10 flex space-x-4 mb-6">
-        <!-- Subcategory Dropdown -->
-        <div class="flex items-center">
-            <label for="subcategory" class="mr-2 font-semibold">Subcategory</label>
-            <select id="subcategory" name="subcategory" class="border border-gray-400 rounded px-3 py-2">
-                <option value="">Select Subcategory</option>
-                {% for subcategory_name in unique_subcategories %}
-                    <option value="subcategory1">{{ subcategory_name }}</option>
-                {% endfor %}
-            </select>
-        </div>
+        <!-- Filters -->
+        <form id="filters" class="flex space-x-4 mb-6">
+            <!-- Subcategory Dropdown -->
+            <div class="flex items-center">
+                <label for="subcategory" class="mr-2 font-semibold">Subcategory</label>
+                <select id="subcategory" name="subcategory" class="border border-gray-400 rounded px-3 py-2">
+                    <option value="">Select Subcategory</option>
+                    {% for subcategory_name in unique_subcategories %}
+                        <option value="{{ subcategory_name }}">{{ subcategory_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
 
-        <!-- Order Status Dropdown -->
-        <div class="flex items-center">
-            <label for="order_status" class="mr-2 font-semibold">Order Status</label>
-            <select id="order_status" name="order_status" class="border border-gray-400 rounded px-3 py-2">
-                <option value="">Select Status</option>
-                <option value="WP">Waiting for Payment</option>
-                <option value="SNW">Searching for Nearest Workers</option>
-                <option value="OC">Order Completed</option>
-            </select>
-        </div>
+            <!-- Order Status Dropdown -->
+            <div class="flex items-center">
+                <label for="order_status" class="mr-2 font-semibold">Order Status</label>
+                <select id="order_status" name="order_status" class="border border-gray-400 rounded px-3 py-2">
+                    <option value="">Select Status</option>
+                    <option value="waiting for payment">Waiting for Payment</option>
+                    <option value="searching for nearest workers">Searching for Nearest Workers</option>
+                    <option value="order completed">Order Completed</option>
+                </select>
+            </div>
 
-        <!-- Search Bar -->
-        <div class="flex items-center">
-            <input
-                type="text"
-                placeholder="Search"
-                class="border border-gray-400 rounded px-3 py-2 w-full"
-            />
-            <button class="ml-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Search</button>
-        </div>
+            <!-- Search Box -->
+            <div class="flex items-center">
+                <input
+                    type="text"
+                    id="search"
+                    placeholder="Search"
+                    class="border border-gray-400 rounded px-3 py-2 w-full"
+                />
+            </div>
+        </form>
     </div>
 
     <!-- Booked Sessions List -->
@@ -60,9 +63,13 @@
                     <th class="px-4 py-2">Action</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="sessionsTable">
                 {% for session in booked_sessions %}
-                    <tr class="border-t">
+                    <tr class="border-t" 
+                        data-subcategory="{{ session.subcategory_name }}" 
+                        data-status="{{ session.status }}" 
+                        data-session="{{ session.subcategory_name | lower }}">
+
                         <td class="px-4 py-2">{{ session.subcategory_name}}</td>
                         <td class="px-4 py-2">{{ session.session }}</td>
                         <td class="px-4 py-2">${{ session.price }}</td>
@@ -133,6 +140,46 @@
 </div>
 
 <script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const subcategoryFilter = document.getElementById("subcategory");
+        const statusFilter = document.getElementById("order_status");
+        const searchFilter = document.getElementById("search");
+        const sessionsTable = document.getElementById("sessionsTable");
+        const rows = sessionsTable.querySelectorAll("tr");
+
+        function filterRows() {
+            const subcategoryValue = subcategoryFilter.value.toLowerCase();
+            const statusValue = statusFilter.value.toLowerCase();
+            const searchValue = searchFilter.value.toLowerCase();
+
+            console.log("Subcategory:", subcategoryValue, "Status:", statusValue, "Search:", searchValue); // Debugging
+
+            rows.forEach(row => {
+                const rowSubcategory = row.getAttribute("data-subcategory").toLowerCase();
+                const rowStatus = row.getAttribute("data-status").toLowerCase();
+                const rowSession = row.getAttribute("data-session").toLowerCase();
+
+                console.log("Row Subcategory:", rowSubcategory, "Row Status:", rowStatus, "Row Session:", rowSession); // Debugging
+
+
+                const matchesSubcategory = !subcategoryValue || rowSubcategory === subcategoryValue;
+                const matchesStatus = !statusValue || rowStatus === statusValue;
+                const matchesSearch = !searchValue || rowSession.includes(searchValue);
+
+                if (matchesSubcategory && matchesStatus && matchesSearch) {
+                    row.style.display = ""; // Show the row
+                } else {
+                    row.style.display = "none"; // Hide the row
+                }
+            });
+        }
+
+        // Attach event listeners
+        subcategoryFilter.addEventListener("change", filterRows);
+        statusFilter.addEventListener("change", filterRows);
+        searchFilter.addEventListener("input", filterRows);
+    });
+
     // Open the modal
     function openModal() {
         document.getElementById('testimonialModal').classList.remove('hidden');
