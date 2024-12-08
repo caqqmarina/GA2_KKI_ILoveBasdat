@@ -201,12 +201,12 @@
         const Id = button.getAttribute('data-id'); // Get the ID from the button
 
         if (confirm('Are you sure you want to cancel this order?')) {
-            // Send an AJAX request to delete the order
+            // Send an AJAX request to cancel the order
             fetch('/services/cancel_order/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token }}'  // Make sure to include the CSRF token
+                    'X-CSRFToken': '{{ csrf_token }}' // Make sure to include the CSRF token
                 },
                 body: JSON.stringify({
                     id: Id
@@ -215,8 +215,12 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
+                    // Update the button to reflect the "Cancelled" state
+                    button.textContent = "Cancelled";
+                    button.disabled = true; // Disable the button
+                    button.classList.remove("bg-red-500", "hover:bg-red-600"); // Remove old styles
+                    button.classList.add("bg-gray-400", "cursor-not-allowed"); // Add disabled styles
                     alert('Order cancelled successfully.');
-                    location.reload();  // Reload the page to reflect the change
                 } else {
                     alert('Error cancelling the order.');
                 }
