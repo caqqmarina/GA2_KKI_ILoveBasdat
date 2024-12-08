@@ -427,14 +427,17 @@ def discount_page(request):
         return redirect('error_page')
 
 def validate_discount(request):
+    user, is_worker = authenticate(request)  # Check authentication
+
     if request.method == 'POST':
         try:
             # Parse JSON data from the request body
             data = json.loads(request.body)
             discount_code = data.get('discount_code')  # Get the discount code from the JSON payload
+            user_id = user[0]  # Assuming the user ID is passed in the request to validate the user's purchase
 
-            if not discount_code:
-                return JsonResponse({'valid': False, 'message': 'No discount code provided'}, status=400)
+            if not discount_code or not user_id:
+                return JsonResponse({'valid': False, 'message': 'Discount code or user ID not provided'}, status=400)
 
             # Establish database connection using psycopg2
             with psycopg2.connect(
@@ -445,12 +448,12 @@ def validate_discount(request):
                 port=settings.DATABASES['default']['PORT']
             ) as conn:
                 with conn.cursor() as cursor:
-                    # Check if the code exists in main_promo table
+                    # Check if the code exists in the main_promo table
                     cursor.execute("SELECT discount_amount FROM main_promo WHERE code = %s", (discount_code,))
                     promo = cursor.fetchone()
 
-                    # Check if the code exists in main_voucher table
-                    cursor.execute("SELECT discount FROM main_voucher WHERE code = %s", (discount_code,))
+                    # Check if the code exists in the main_voucher table
+                    cursor.execute("SELECT id, discount, validity_days FROM main_voucher WHERE code = %s", (discount_code,))
                     voucher = cursor.fetchone()
 
                     if promo:
@@ -461,21 +464,61 @@ def validate_discount(request):
                             'type': 'promo',  # Indicate it's a promo
                         })
                     elif voucher:
-                        # Valid voucher code
-                        return JsonResponse({
-                            'valid': True,
-                            'discount_amount': voucher[0],
-                            'type': 'voucher',  # Indicate it's a voucher
-                        })
+                        # Valid voucher code, now check if the user has purchased this voucher
+                        voucher_id = voucher[0]
+                        cursor.execute("""
+                            SELECT user_quota, validity_date FROM voucher_purchases
+                            WHERE user_id = %s AND voucher_id = %s
+                        """, (user_id, voucher_id))
+
+                        result = cursor.fetchone()
+
+                        if result:
+                            user_quota, validity_date = result
+                            # Check if the voucher has expired
+                            if validity_date < datetime.date.today():
+                                return JsonResponse({
+                                    'valid': False,
+                                    'message': 'This voucher has expired.'
+                                })
+
+                            if user_quota > 0:
+                                # Decrease the user's quota by 1
+                                cursor.execute("""
+                                    UPDATE voucher_purchases
+                                    SET user_quota = user_quota - 1
+                                    WHERE user_id = %s AND voucher_id = %s
+                                """, (user_id, voucher_id))
+                                conn.commit()
+
+                                return JsonResponse({
+                                    'valid': True,
+                                    'discount_amount': voucher[1],
+                                    'type': 'voucher',  # Indicate it's a voucher
+                                    'message': f'Voucher applied successfully! You saved ${voucher[1]}'
+                                })
+                            else:
+                                # User has no remaining quota
+                                return JsonResponse({
+                                    'valid': False,
+                                    'message': 'You have no remaining quota for this voucher.'
+                                })
+                        else:
+                            # User has not purchased the voucher
+                            return JsonResponse({
+                                'valid': False,
+                                'message': 'You have not purchased this voucher.'
+                            })
+
                     else:
-                        # Invalid code
+                        # Invalid discount code
                         return JsonResponse({
                             'valid': False,
                             'message': 'Invalid discount code.'
                         })
 
         except Exception as e:
-            print(f"Error occurred while validating the discount: {e}")
+            print(f"Error occurred while validating and using the discount: {e}")
             return JsonResponse({'valid': False, 'message': 'An error occurred while processing the discount.'}, status=500)
 
     return JsonResponse({'valid': False, 'message': 'Invalid request method.'}, status=400)
@@ -488,6 +531,7 @@ def buy_voucher(request, voucher_id):
 
     if request.method == 'POST':
         try:
+            # Connect to the database
             with psycopg2.connect(
                 dbname=settings.DATABASES['default']['NAME'],
                 user=settings.DATABASES['default']['USER'],
@@ -497,13 +541,14 @@ def buy_voucher(request, voucher_id):
             ) as conn:
                 with conn.cursor() as cursor:
                     # Fetch voucher details
-                    cursor.execute("SELECT id, code, price FROM main_voucher WHERE id = %s", (voucher_id,))
+                    cursor.execute("SELECT id, code, price, user_quota FROM main_voucher WHERE id = %s", (voucher_id,))
                     voucher = cursor.fetchone()
 
                     if not voucher:
                         return JsonResponse({'success': False, 'message': 'Voucher not found'}, status=404)
 
                     voucher_price = voucher[2]
+                    user_quota = voucher[3]
 
                     # Check user's balance
                     cursor.execute("SELECT mypay_balance FROM main_user WHERE id = %s", (user[0],))
@@ -515,7 +560,13 @@ def buy_voucher(request, voucher_id):
                     # Deduct balance and complete purchase
                     new_balance = user_balance - voucher_price
                     cursor.execute("UPDATE main_user SET mypay_balance = %s WHERE id = %s", (new_balance, user[0]))
-                    conn.commit()
+                    # Insert a record into voucher_purchases table to track the voucher purchase
+                    cursor.execute("""
+                        INSERT INTO voucher_purchases (user_id, voucher_id, user_quota)
+                        VALUES (%s, %s, %s)
+                    """, (user[0], voucher_id, user_quota))
+
+                    conn.commit()  # Commit the transaction
 
                     return JsonResponse({'success': True, 'message': 'Voucher purchased successfully'})
 
