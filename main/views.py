@@ -57,7 +57,6 @@ def authenticate(request):
         print(f"Authentication error: {e}")
         return None, False
     
-
 def homepage(request):
     user_phone = request.session.get('user_phone')
     is_authenticated = request.session.get('is_authenticated', False)
@@ -409,7 +408,8 @@ def discount_page(request):
             'user': user,
             'is_worker': is_worker,
             'promos': promo_data,
-            'vouchers': voucher_data
+            'vouchers': voucher_data,
+            'user_name' : user[1]
         }
 
         return render(request, 'discount.html', context)
@@ -473,28 +473,74 @@ def validate_discount(request):
     return JsonResponse({'valid': False, 'message': 'Invalid request method.'}, status=400)
 
 def buy_voucher(request, voucher_id):
+    user, is_worker = authenticate(request)
+
+    if not user:
+        return JsonResponse({'success': False, 'message': 'User not authenticated'}, status=403)
+
     if request.method == 'POST':
-        user = request.user
         try:
-            voucher = voucher.objects.get(id=voucher_id)
-        except voucher.DoesNotExist:
-            messages.error(request, 'Voucher not found.')
-            return HttpResponseRedirect(reverse('discount'))
+            with psycopg2.connect(
+                dbname=settings.DATABASES['default']['NAME'],
+                user=settings.DATABASES['default']['USER'],
+                password=settings.DATABASES['default']['PASSWORD'],
+                host=settings.DATABASES['default']['HOST'],
+                port=settings.DATABASES['default']['PORT']
+            ) as conn:
+                with conn.cursor() as cursor:
+                    # Fetch voucher details
+                    cursor.execute("SELECT id, code, price FROM main_voucher WHERE id = %s", (voucher_id,))
+                    voucher = cursor.fetchone()
 
-        # Check if user has enough balance
-        if user.profile.mypay_balance >= voucher.price:
-            # Deduct balance
-            user.profile.mypay_balance -= voucher.price
-            user.profile.save()
+                    if not voucher:
+                        return JsonResponse({'success': False, 'message': 'Voucher not found'}, status=404)
 
-            messages.success(request, f'You successfully bought the voucher: {voucher.code}.')
-            return HttpResponseRedirect(reverse('discount'))
-        else:
-            messages.error(request, 'Insufficient balance to buy this voucher.')
-            return HttpResponseRedirect(reverse('discount'))
+                    voucher_price = voucher[2]
 
-    messages.error(request, 'Invalid request.')
-    return HttpResponseRedirect(reverse('discount'))
+                    # Check user's balance
+                    cursor.execute("SELECT mypay_balance FROM main_user WHERE id = %s", (user[0],))
+                    user_balance = cursor.fetchone()[0]
+
+                    if user_balance < voucher_price:
+                        return JsonResponse({'success': False, 'message': 'Insufficient balance'}, status=400)
+
+                    # Deduct balance and complete purchase
+                    new_balance = user_balance - voucher_price
+                    cursor.execute("UPDATE main_user SET mypay_balance = %s WHERE id = %s", (new_balance, user[0]))
+                    conn.commit()
+
+                    return JsonResponse({'success': True, 'message': 'Voucher purchased successfully'})
+
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': f'Error: {str(e)}'}, status=500)
+
+    return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=400)
+
+def check_mypay_balance(request):
+    user, is_worker = authenticate(request)  # Check authentication
+
+    if not user:
+        return JsonResponse({'valid': False, 'message': 'User not authenticated'}, status=403)
+
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            voucher_price = data.get('voucherPrice')
+
+            if not voucher_price:
+                return JsonResponse({'valid': False, 'message': 'Voucher price not provided'}, status=400)
+
+            # Fetch user's balance
+            user_balance = user[16]  # Assuming user[16] stores `mypay_balance`
+            if user_balance >= voucher_price:
+                return JsonResponse({'valid': True})
+            else:
+                return JsonResponse({'valid': False, 'message': 'Insufficient balance'})
+
+        except Exception as e:
+            return JsonResponse({'valid': False, 'message': f'Error: {str(e)}'}, status=500)
+
+    return JsonResponse({'valid': False, 'message': 'Invalid request method'}, status=400)
 
 def some_view(request):
     user_id = request.session.get('user_id')
