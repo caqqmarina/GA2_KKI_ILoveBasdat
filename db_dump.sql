@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 17.0 (Debian 17.0-1.pgdg120+1)
--- Dumped by pg_dump version 17.0 (Debian 17.0-1.pgdg120+1)
+-- Dumped from database version 17.1 (Debian 17.1-1.pgdg120+1)
+-- Dumped by pg_dump version 17.1 (Debian 17.1-1.pgdg120+1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -293,7 +293,7 @@ CREATE TABLE public.booked_sessions (
     subcategory_id bigint,
     subcategory_name character varying(255),
     worker_name character varying(255),
-    status character varying(100),
+    status character varying(100) DEFAULT 'Waiting for Payment'::character varying,
     action character varying(255),
     booked_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
     user_id bigint
@@ -433,7 +433,7 @@ CREATE TABLE public.main_promo (
     id bigint NOT NULL,
     code character varying(50) NOT NULL,
     offer_end_date date NOT NULL,
-    discount_amount integer
+    discount_amount numeric
 );
 
 
@@ -516,18 +516,18 @@ CREATE TABLE public.main_user (
     password character varying(128) NOT NULL,
     sex character varying(10) NOT NULL,
     phone_number character varying(20) NOT NULL,
+    birth_date date NOT NULL,
     address text NOT NULL,
     last_login timestamp with time zone,
     date_joined timestamp with time zone NOT NULL,
-    email character varying(254),
-    first_name character varying(150),
+    email character varying(254) NOT NULL,
+    first_name character varying(150) NOT NULL,
     is_active boolean NOT NULL,
     is_staff boolean NOT NULL,
     is_superuser boolean NOT NULL,
-    last_name character varying(150),
-    username character varying(150),
-    mypay_balance integer NOT NULL,
-    birth_date date NOT NULL,
+    last_name character varying(150) NOT NULL,
+    username character varying(150) NOT NULL,
+    mypay_balance numeric DEFAULT 0,
     level character varying(10) DEFAULT 'Bronze'::character varying
 );
 
@@ -1102,8 +1102,6 @@ COPY public.auth_user_user_permissions (id, user_id, permission_id) FROM stdin;
 --
 
 COPY public.booked_sessions (id, session_id, session_name, price, subcategory_id, subcategory_name, worker_name, status, action, booked_at, user_id) FROM stdin;
-67	13	3 hours	625.00	3	Specialized Cleaning	Default Worker	Searching for Nearest Workers	None	2024-12-07 17:01:29.561432	1
-68	28	2 hours	300.00	8	Maintenance Services	Default Worker	Order Completed	None	2024-12-07 17:13:03.655417	1
 71	6	1 hour	200.00	2	Deep Cleaning	Default Worker	Waiting for Payment	None	2024-12-08 16:39:35.406566	1
 72	22	5 hours	950.00	5	Commercial Deep Cleaning	Default Worker	Waiting for Payment	None	2024-12-08 16:39:40.079161	1
 73	29	2 hours	500.00	9	Aromatherapy	Default Worker	Waiting for Payment	None	2024-12-08 16:39:44.049438	1
@@ -1154,47 +1152,46 @@ COPY public.django_content_type (id, app_label, model) FROM stdin;
 --
 
 COPY public.django_migrations (id, app, name, applied) FROM stdin;
-1	contenttypes	0001_initial	2024-11-16 05:48:14.272659+00
-2	auth	0001_initial	2024-11-16 05:48:14.359028+00
-3	admin	0001_initial	2024-11-16 05:48:14.382407+00
-4	admin	0002_logentry_remove_auto_add	2024-11-16 05:48:14.391416+00
-5	admin	0003_logentry_add_action_flag_choices	2024-11-16 05:48:14.401742+00
-6	contenttypes	0002_remove_content_type_name	2024-11-16 05:48:14.42411+00
-7	auth	0002_alter_permission_name_max_length	2024-11-16 05:48:14.43569+00
-8	auth	0003_alter_user_email_max_length	2024-11-16 05:48:14.448689+00
-9	auth	0004_alter_user_username_opts	2024-11-16 05:48:14.458259+00
-10	auth	0005_alter_user_last_login_null	2024-11-16 05:48:14.471244+00
-11	auth	0006_require_contenttypes_0002	2024-11-16 05:48:14.476272+00
-12	auth	0007_alter_validators_add_error_messages	2024-11-16 05:48:14.486271+00
-13	auth	0008_alter_user_username_max_length	2024-11-16 05:48:14.500249+00
-14	auth	0009_alter_user_last_name_max_length	2024-11-16 05:48:14.512248+00
-15	auth	0010_alter_group_name_max_length	2024-11-16 05:48:14.524244+00
-16	auth	0011_update_proxy_permissions	2024-11-16 05:48:14.531281+00
-17	auth	0012_alter_user_first_name_max_length	2024-11-16 05:48:14.544281+00
-18	main	0001_initial	2024-11-16 05:48:14.565532+00
-19	main	0002_alter_user_options_alter_worker_options_and_more	2024-11-16 05:48:14.697113+00
-20	services	0001_initial	2024-11-16 05:48:14.795856+00
-21	sessions	0001_initial	2024-11-16 05:48:14.810857+00
-22	main	0002_userprofile_workerprofile	2024-11-17 15:52:03.198983+00
-23	main	0003_merge_20241117_2251	2024-11-17 15:52:03.207044+00
-24	main	0004_alter_workerprofile_image_url	2024-11-17 15:52:03.229393+00
-25	services	0002_rename_name_servicesession_session_and_more	2024-11-17 15:52:03.255906+00
-26	main	0003_merge_20241117_1538	2024-11-17 16:19:15.173887+00
-27	main	0005_merge_20241117_2318	2024-11-17 16:19:15.184238+00
-28	main	0005_merge_20241118_0059	2024-11-17 18:00:26.172106+00
-29	main	0005_merge_20241117_1704	2024-11-17 18:19:32.995788+00
-30	main	0006_merge_20241117_1810	2024-11-17 18:19:33.047696+00
-31	main	0007_promo_voucher	2024-11-17 20:56:21.446144+00
-32	main	0008_remove_workerprofile_user_delete_userprofile_and_more	2024-11-17 21:51:28.548223+00
-33	services	0003_booking_status_testimonial_created_at_and_more	2024-11-18 09:07:51.393103+00
-34	services	0004_serviceorder	2024-11-18 15:01:52.849876+00
-35	services	0005_workerserviceorder	2024-11-18 15:35:21.284172+00
-36	services	0006_remove_workerserviceorder_worker_and_more	2024-11-18 15:51:29.313199+00
-37	main	0009_user_mypay_balance	2024-11-18 16:32:09.728087+00
-38	main	0010_transactioncategory_transaction	2024-11-18 16:32:09.776084+00
-39	main	0011_transfertransaction	2024-11-18 16:32:09.807086+00
-40	services	0007_remove_booking_session_remove_booking_user_and_more	2024-12-03 07:12:54.598185+00
-41	main	0012_delete_promo_remove_transaction_category_and_more	2024-12-03 07:12:54.801074+00
+1	contenttypes	0001_initial	2024-11-16 11:44:36.296006+00
+2	auth	0001_initial	2024-11-16 11:44:36.316408+00
+3	admin	0001_initial	2024-11-16 11:44:36.322749+00
+4	admin	0002_logentry_remove_auto_add	2024-11-16 11:44:36.32603+00
+5	admin	0003_logentry_add_action_flag_choices	2024-11-16 11:44:36.328934+00
+6	contenttypes	0002_remove_content_type_name	2024-11-16 11:44:36.33569+00
+7	auth	0002_alter_permission_name_max_length	2024-11-16 11:44:36.33924+00
+8	auth	0003_alter_user_email_max_length	2024-11-16 11:44:36.342578+00
+9	auth	0004_alter_user_username_opts	2024-11-16 11:44:36.345579+00
+10	auth	0005_alter_user_last_login_null	2024-11-16 11:44:36.349274+00
+11	auth	0006_require_contenttypes_0002	2024-11-16 11:44:36.350111+00
+12	auth	0007_alter_validators_add_error_messages	2024-11-16 11:44:36.352921+00
+13	auth	0008_alter_user_username_max_length	2024-11-16 11:44:36.359266+00
+14	auth	0009_alter_user_last_name_max_length	2024-11-16 11:44:36.362907+00
+15	auth	0010_alter_group_name_max_length	2024-11-16 11:44:36.366689+00
+16	auth	0011_update_proxy_permissions	2024-11-16 11:44:36.369287+00
+17	auth	0012_alter_user_first_name_max_length	2024-11-16 11:44:36.372818+00
+18	main	0001_initial	2024-11-16 11:44:36.378879+00
+19	main	0002_alter_user_options_alter_worker_options_and_more	2024-11-16 11:44:36.421946+00
+20	services	0001_initial	2024-11-16 11:44:36.453455+00
+21	sessions	0001_initial	2024-11-16 11:44:36.457592+00
+22	services	0002_rename_name_servicesession_session_and_more	2024-11-17 12:45:51.102557+00
+23	main	0002_userprofile_workerprofile	2024-11-17 15:38:28.332936+00
+24	main	0003_merge_20241117_1538	2024-11-17 15:38:28.333644+00
+25	main	0003_merge_20241117_2251	2024-11-17 17:04:28.999662+00
+26	main	0004_alter_workerprofile_image_url	2024-11-17 17:04:29.007428+00
+27	main	0005_merge_20241117_1704	2024-11-17 17:04:29.008654+00
+28	main	0005_merge_20241118_0059	2024-11-17 18:10:33.427733+00
+29	main	0006_merge_20241117_1810	2024-11-17 18:10:33.432418+00
+30	main	0007_promo_voucher	2024-11-17 19:53:37.866053+00
+31	main	0008_remove_workerprofile_user_delete_userprofile_and_more	2024-11-18 03:05:19.415259+00
+32	services	0003_booking_status_testimonial_created_at_and_more	2024-11-18 13:09:29.901285+00
+33	services	0004_serviceorder	2024-11-18 13:09:29.906125+00
+34	services	0005_workerserviceorder	2024-11-18 16:22:39.205759+00
+35	services	0006_remove_workerserviceorder_worker_and_more	2024-11-18 16:22:39.233322+00
+36	main	0009_user_mypay_balance	2024-11-18 16:36:59.553119+00
+37	main	0010_transactioncategory_transaction	2024-11-18 16:36:59.570585+00
+38	main	0011_transfertransaction	2024-11-18 16:36:59.580427+00
+39	services	0007_remove_booking_session_remove_booking_user_and_more	2024-12-01 12:50:19.922834+00
+40	main	0012_delete_promo_remove_transaction_category_and_more	2024-12-01 12:50:19.963722+00
 \.
 
 
@@ -1203,13 +1200,23 @@ COPY public.django_migrations (id, app, name, applied) FROM stdin;
 --
 
 COPY public.django_session (session_key, session_data, expire_date) FROM stdin;
+zugu02nkuuky7dvrlpz8xb8hgtjhudt1	eyJ1c2VyX3Bob25lIjoiMDgxODgwMjMxNiIsImlzX2F1dGhlbnRpY2F0ZWQiOnRydWUsImlzX3dvcmtlciI6ZmFsc2V9:1tCJ6r:IPLubV-j-qNdm1vmVNoIZRBePTLhMUJAZdJqh7OGxUQ	2024-11-30 13:45:09.402978+00
+sx6ii6hv138xkoq6veq6phv0n3sweetc	eyJ1c2VyX3Bob25lIjoiMDgxODgwMjMxNiIsImlzX2F1dGhlbnRpY2F0ZWQiOnRydWUsImlzX3dvcmtlciI6ZmFsc2V9:1tCKBF:9Cc9iR7slowY_q6GULNhD9bOTH198u3JOW-O0lEpFq8	2024-11-30 14:53:45.784662+00
+kaam5q9k37yrinkxwdeq801b9lq9q4kj	.eJwdzMEKgzAQhOF3mbMHoyAhr1IkRN3WYMnKbkKR0nfvtoe5_APfG01J4rlzIQT03nnfD6Ob0CFrTK3uVGpeU6UNoUqjf3-xHCQI9_RUKwvzQVtUUs1cFOEGZ8BgGzF30Lb8hAfLFbM59n6-sW4n4w:1tHn4P:D8udbqR8jFoZYSS2P5cloBnUUxc2zTSQY3ppxGRJ9G4	2024-12-15 16:45:17.842759+00
+2emwedc2c1co78qlx2f0pbo6fb2e9u4h	.eJwdzDEOhCAQRuG7_PUWgrohXGVjCOoYCIYxDMRi492XbPGar3hfNKHirsCZYDEYZcygR_XGC1GcbzVQrnHzlXbYWhr9_eaSqMAe_pQuK3Oi3QmJRM4C-4Hug6k395TG8vwAU-IhyA:1tCufy:NH4AaXCXGwBFhyP5T8u3noXCtRUJtMEXwBbWyKglDkU	2024-12-02 05:51:54.743817+00
+4g4fcnl9b3h04bi4wsyedwyw7pz39i25	.eJwdzEEKgCAQBdC7_HULNQjxKhFiNZEYTjhKi-juRdu3eDeaUPHnzpngoKy2VpleD-gQxYdWd8o1LqHSCldLo98vLokK3BYO-WRmTrR6IZHIWeBG6C8wCtPzAk5mIH0:1tCwBX:fI2RTTeln9NI-_WpQaPx7ax3VrVcnP3hsUTs3YxX2WU	2024-12-02 07:28:35.532853+00
+laca2hmab26c00j7i5f1b5m48ueahpio	.eJwdy0kKhDAQBdC7_LULB5CQqzRNiKZsg01KqhJExLs7bB-8A0VJ3DpzIljUpjGmbrumR4Wozpc8U8px9JkCbJZCr28sCwns5P96y8C8UHBKqpGTwn5g8K2gZXjmj2V38f5ocV6YlCam:1tJwYw:lDCu6wfY7Z0NRQh_ajyJ6tqw_Gm7a6Va5lKBxmyP-UM	2024-12-21 15:17:42.693693+00
+tm0ful4jrvbuy7bqudtkirt747stjyv2	.eJwdzEEKgCAQBdC7_HULNQjxKhFiNZEYTjhKi-juRdu3eDeaUPHnzpngoKy2VpleD-gQxYdWd8o1LqHSCldLo98vLokK3BYO-WRmTrR6IZHIWeBG6C8wCtPzAk5mIH0:1tD1vQ:Ptjdmu6NO6Sv2xvIxolasMOJ32QrgNaV2QOJzSEYMbQ	2024-12-02 13:36:20.707614+00
+yhtd517tcmnsw9vywg23kp54bemjm4tt	eyJ1c2VyX3Bob25lIjoiMDgxODgwMjMxNiIsImlzX2F1dGhlbnRpY2F0ZWQiOnRydWUsImlzX3dvcmtlciI6ZmFsc2V9:1tCkKA:BOSdARTbsk41ErzovMHKS5jsl03O-yRtmHAzyQbtAn8	2024-12-01 18:48:42.583251+00
+73fq9xmnpdfsw5nmh25g9va6l8i9yazp	e30:1tCkKN:kAxmnKOKGB1FHbSeyNSjsup1QFzRU5HaLOXjgY8gv8k	2024-12-01 18:48:55.071474+00
+zstgu440ke8kq3anbkvz0ug0gwp5ys71	eyJ1c2VyX3Bob25lIjoiMTIzNDU2Nzg5MTAiLCJpc19hdXRoZW50aWNhdGVkIjp0cnVlLCJpc193b3JrZXIiOnRydWV9:1tD4mB:udPvR-GE8TJN8LdmWDn-PwLCkCQpdN-paI3cVvANSGo	2024-12-02 16:38:59.120227+00
 eki58bwbdmbkjvx5fbc71d48ytgieq6z	eyJ1c2VyX3Bob25lIjoiMDgxODgwMjMxNiIsImlzX2F1dGhlbnRpY2F0ZWQiOnRydWUsImlzX3dvcmtlciI6ZmFsc2V9:1tCBpg:D0j-BYAqj1Q9d7XKYAgdndVy29MVBCOWJxoBkUlDu98	2024-11-30 05:58:56.082343+00
 ut07mn8uaxktna8chrwri8a32omy3ogq	eyJ1c2VyX3Bob25lIjoiMDgxODgwMjMxNiIsImlzX2F1dGhlbnRpY2F0ZWQiOnRydWUsImlzX3dvcmtlciI6ZmFsc2V9:1tCZJG:MFbQsbL_Bo08kHJAPybrTFLw_1gvKQidc0Qd2cIVIJM	2024-12-01 07:03:02.856684+00
 g3me9tvbatr224fq05w3ib5dyfaml74b	eyJ1c2VyX3Bob25lIjoiMDgxODgwMjMxNiIsImlzX2F1dGhlbnRpY2F0ZWQiOnRydWUsImlzX3dvcmtlciI6ZmFsc2V9:1tCk31:Mfad3uG-WXEO66KpMx25K2cpT_Qy9Rdi2wutsMlZjMg	2024-12-01 18:30:59.024373+00
-498dlqb1qtyd6dwxn23jzkb23btkc3f8	eyJ1c2VyX3Bob25lIjoiMDgxODgwMjMxNiIsImlzX2F1dGhlbnRpY2F0ZWQiOnRydWUsImlzX3dvcmtlciI6ZmFsc2V9:1tHjpZ:K6I2V01CNywGlWIeBDG5UaxnZcl88LPeOdPEGzYwuJ8	2024-12-15 13:17:45.382183+00
-5j15rmy4cwiwrcphcqj9celrxfht99u4	eyJ1c2VyX3Bob25lIjoiMDgxODgwMjMxNiIsImlzX2F1dGhlbnRpY2F0ZWQiOnRydWUsImlzX3dvcmtlciI6ZmFsc2V9:1tHnas:kVXHN0slMluYmRsg4HSDNoQct8AUP2T_XhKADgtL0S0	2024-12-15 17:18:50.423734+00
-jvd3h9ieolmumpkas2kk9tfgf1y2ou6j	eyJ1c2VyX3Bob25lIjoiMDgxODgwMjMxNiIsImlzX2F1dGhlbnRpY2F0ZWQiOnRydWUsImlzX3dvcmtlciI6ZmFsc2V9:1tJzpS:QzXJhxy8oh8xQRiN_r8ov93hgLLcCckRhyqYIs3zChI	2024-12-21 18:46:58.648078+00
-2kqefv37hdnbaymfexkb7wqnbmrdjla8	eyJ1c2VyX3Bob25lIjoiMDgxODgwMjMxNiIsImlzX2F1dGhlbnRpY2F0ZWQiOnRydWUsImlzX3dvcmtlciI6ZmFsc2V9:1tKKNe:gqT9lkTehc01v0gq4zF6WpcXa8dJp_5An4rw9WUWhsg	2024-12-22 16:43:38.678004+00
+xchkpq2pwfa410oxrnczwumm6wz7gqwh	.eJw1y0sKgCAURuG9_OMm9s6tREjlBUXwhldpEO29CBqcyQfnQhFK5nAcCRqqbtquH8YJFbyYtWRHMft9zWShcyr0-ckpUPphYw5kjZCI5yjQM9T7D2-qxXI_nBggtA:1tD0TL:nOnhERB1S4rSKnXTGvJpCpqLVzc4NwUd1vHOunxK67k	2024-12-02 12:03:15.380844+00
+qevrieg7y0qso35vmve0auarfjzyui5j	.eJwdy0EKgzAQBdC7_LUL04KEXKWUEM1UgyVTZhJExLs3un3wDlQl8b-FM8Ght8ba_vE0Azok9aGWhXJJUygU4YpUun1jWUngPuGrTUbmlaJXUk2cFe4Fg3cHreM1Z5bdp_abnn-X4iae:1tHluY:YB6HvmHOzyfLK9hf25YtOQXSYmNdH3zersZoHoAdHTg	2024-12-15 15:31:02.79877+00
+seyx1qfsc1ehwc2zj44jk6hib69umjc0	eyJ1c2VyX3Bob25lIjoiMDgxODgwMjMxNiIsImlzX2F1dGhlbnRpY2F0ZWQiOnRydWUsImlzX3dvcmtlciI6ZmFsc2V9:1tKJsS:Vj-rUEiSv6lGrgYRbUSYh4IXmoodtquST9yto7jksIc	2024-12-22 16:11:24.25895+00
+f2gy3kqsz1g9zg3sc1kqw08zwxh83i1f	eyJ1c2VyX3Bob25lIjoiMDgxODgwMjMxNiIsImlzX2F1dGhlbnRpY2F0ZWQiOnRydWUsImlzX3dvcmtlciI6ZmFsc2V9:1tKKUX:64d62XM7tlI1IxQmqj4b_cJhJKPZ4rG2y2_WCxu1NLw	2024-12-22 16:50:45.771439+00
 \.
 
 
@@ -1252,13 +1259,11 @@ COPY public.main_transfertransaction (transaction_ptr_id, recipient_id) FROM std
 -- Data for Name: main_user; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.main_user (id, name, password, sex, phone_number, address, last_login, date_joined, email, first_name, is_active, is_staff, is_superuser, last_name, username, mypay_balance, birth_date, level) FROM stdin;
-2	min	pbkdf2_sha256$720000$1Gg9zYq9H0Y5kxzzPz7rDc$7iIsSKxc5ppPiLFxp1UjvQ4eZmLcvXXW/OelJadCuQU=	female	12345678910	jl.almadaniah 2no.12	\N	2024-11-17 21:53:34.510571+00			t	f	f		12345678910	0	2000-01-01	Bronze
-4	linda	pbkdf2_sha256$720000$71O6pUUTITc70HAQQGSq9V$8Y+Ug5hG1Xquk1PSJJs2yuN5jVzmoct4z6GTXxGi7aA=	female	123456789	jl. pondok china	\N	2024-11-18 12:03:06.257811+00			t	f	f		123456789	0	2000-01-01	Bronze
-3	Wonyoung	pbkdf2_sha256$720000$wj9lbZA9EXu7eww21LYJBX$V29FkXRNBqNL8vXw70eH8lfRLNu09wpjNiFm/FxfcPQ=	female	12345678	jl. tanjung barat 3	\N	2024-11-18 12:01:15.701338+00			t	f	f		12345678	0	2000-01-01	Bronze
-5	bhima	pbkdf2_sha256$720000$o97TOMFoKWFuUg2hu4vY4r$QsctprevA1oFdylCrtblwzeaByR5aI92gZdMSldCPF8=	male	1234567	hl. almadaniah 2	\N	2024-12-05 20:52:39.337214+00			t	f	f			0	2000-01-01	Bronze
-1	chiara aqmarina	pbkdf2_sha256$720000$uPDBA7URJlYGInOwmGI3HZ$JwXjQHTM4O7yrP7DS0xR05CglmKaXTPFcvB9i7aZ4oI=	female	0818802316	jl. almadaniah 2 no.12	\N	2024-11-16 05:58:45.956328+00			t	f	f		0818802316	0	2006-05-06	Bronze
-6	ghaisan	pbkdf2_sha256$720000$zBHppWTC1avvVVzkZCRgMo$5UYAw5qnJfLWUBPjqJ9LN9/hmVkkUXdBoaLto6lg2hw=	male	123456	jl. almda	\N	2024-12-05 20:54:46.959056+00			t	f	f		user_5db0cff5	0	2006-04-06	Bronze
+COPY public.main_user (id, name, password, sex, phone_number, birth_date, address, last_login, date_joined, email, first_name, is_active, is_staff, is_superuser, last_name, username, mypay_balance, level) FROM stdin;
+2	min	pbkdf2_sha256$870000$OFPxDVoGsaAEquPjtlIVTG$eOlIL2BGduyH9OvIDugZH70UsOBBQFzaLxXpe0nSgX8=	female	12345678910	2005-05-06	jl.almadaniah 2no.12	\N	2024-11-17 21:53:34.510571+00			t	f	f		12345678910	0	Bronze
+1	chiara aqmarina	pbkdf2_sha256$870000$B6dHLViPOoK1MLwfC6SUL9$+HOw5944C6MzAsqhnJb+Gq0OWrru9E8xy+aBuLEQQ9E=	female	0818802316	2006-05-06	jl. almadaniah 2 no.12	\N	2024-11-16 05:58:45.956328+00			t	f	f		0818802316	0	Bronze
+3	christopher	pbkdf2_sha256$870000$n8fadZdGDGVx2ETToagN2U$EZNbd7lDmrK46bSKtpjNsbdk1kvxBLQVZ0PxOwOf2KM=	male	12345678	2005-05-06	jl. tanjung barat 3	\N	2024-11-18 12:01:15.701338+00			t	f	f		12345678	0	Bronze
+4	linda	pbkdf2_sha256$870000$lVkFZZaJdGocazVmknXEGm$f0uJpLU806C66e7UnPQoB59kIWpHq2tt4fDACabu2GU=	female	123456789	2004-05-06	jl. pondok china	\N	2024-11-18 12:03:06.257811+00			t	f	f		123456789	0	Bronze
 \.
 
 
@@ -1296,9 +1301,8 @@ COPY public.main_voucher (id, code, discount, min_transaction, validity_days, us
 
 COPY public.main_worker (user_ptr_id, bank_name, account_number, npwp, image_url) FROM stdin;
 2	Virtual Account BCA	123456789	13456789	https://i.redd.it/i-got-bored-so-i-decided-to-draw-a-random-image-on-the-v0-4ig97vv85vjb1.png?width=1280&format=png&auto=webp&s=7177756d1f393b6e093596d06e1ba539f723264b
+3	Virtual Account BNI	123456789	123456789	https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/J_Paul_Getty_crop.jpg/640px-J_Paul_Getty_crop.jpg
 4	Virtual Account BCA	123456789	1234567	https://awsimages.detik.net.id/community/media/visual/2024/01/24/idol-kpop-lolos-getty-images-kulit-wajah-mulus-di-kehidupan-nyata.jpeg?w=600&q=90
-3	Virtual Account BNI	123456789	123456789	https://tvharmoni.com/wp-content/uploads/2024/08/WhatsApp-Image-2024-08-02-at-18.56.47.jpeg
-6	GoPay	2165412781	1876150783	https://static.wikia.nocookie.net/roblox/images/6/69/R15_Noob.png/revision/latest?cb=20180730013417
 \.
 
 
