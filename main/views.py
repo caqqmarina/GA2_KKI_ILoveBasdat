@@ -354,57 +354,64 @@ def discount_page(request):
     if not user:
         return redirect('login')  # Redirect to login if not authenticated
 
-    # Hardcoded voucher data
-    vouchers = [
-        {
-            'code': 'VOUCHER1',
-            'discount': 10.00,  # 10% discount
-            'min_transaction_order': 50.00,  # Minimum transaction order: $50
-            'valid_days': 30,  # Valid for 30 days
-            'user_quota': 100,  # Maximum 100 users can use this voucherq
-            'price': 5.00  # Voucher price: $5
-        },
-        {
-            'code': 'VOUCHER2',
-            'discount': 15.00,  # 15% discount
-            'min_transaction_order': 100.00,  # Minimum transaction order: $100
-            'valid_days': 60,  # Valid for 60 days
-            'user_quota': 200,  # Maximum 200 users can use this voucher
-            'price': 8.00  # Voucher price: $8
-        },
-        {
-            'code': 'VOUCHER3',
-            'discount': 20.00,  # 20% discount
-            'min_transaction_order': 150.00,  # Minimum transaction order: $150
-            'valid_days': 45,  # Valid for 45 days
-            'user_quota': 300,  # Maximum 300 users can use this voucher
-            'price': 10.00  # Voucher price: $10
-        },
-        {
-            'code': 'VOUCHER4',
-            'discount': 5.00,  # 5% discount
-            'min_transaction_order': 20.00,  # Minimum transaction order: $20
-            'valid_days': 15,  # Valid for 15 days
-            'user_quota': 50,  # Maximum 50 users can use this voucher
-            'price': 2.00  # Voucher price: $2
+    try:
+        # Establish database connection
+        with psycopg2.connect(
+            dbname=settings.DATABASES['default']['NAME'],
+            user=settings.DATABASES['default']['USER'],
+            password=settings.DATABASES['default']['PASSWORD'],
+            host=settings.DATABASES['default']['HOST'],
+            port=settings.DATABASES['default']['PORT']
+        ) as conn:
+            with conn.cursor() as cursor:
+                # Query to fetch promos
+                cursor.execute("SELECT id, code, offer_end_date, discount_amount FROM main_promo")
+                promos = cursor.fetchall()
+
+                # Query to fetch vouchers
+                cursor.execute("""
+                    SELECT id, code, discount, min_transaction, validity_days, user_quota, price
+                    FROM main_voucher
+                """)
+                vouchers = cursor.fetchall()
+
+        # Prepare data in a structured format
+        promo_data = [
+            {
+                'id': promo[0],
+                'code': promo[1],
+                'offer_end_date': promo[2],
+                'discount_amount': promo[3]
+            }
+            for promo in promos
+        ]
+
+        voucher_data = [
+            {
+                'id': voucher[0],
+                'code': voucher[1],
+                'discount': voucher[2],
+                'min_transaction': voucher[3],
+                'validity_days': voucher[4],
+                'user_quota': voucher[5],
+                'price': voucher[6]
+            }
+            for voucher in vouchers
+        ]
+
+        # Context to pass to template
+        context = {
+            'user': user,
+            'is_worker': is_worker,
+            'promos': promo_data,
+            'vouchers': voucher_data
         }
-    ]
 
-    # Hardcoded promo data
-    promos = [
-        {'code': 'PROMO10', 'offer_end_date': '2024-12-31'},
-        {'code': 'PROMO20', 'offer_end_date': '2024-11-30'},
-        {'code': 'PROMO30', 'offer_end_date': '2024-12-15'},
-    ]
+        return render(request, 'discount.html', context)
 
-    context = {
-        'vouchers': vouchers,
-        'promos': promos,
-        'user': user,
-        'is_worker':is_worker,
-        'user_name': user[1],
-    }
-    return render(request, 'discount.html', context)
+    except Exception as e:
+        print(f"Error occurred: {e}")
+        return redirect('error_page')
 
 def buy_voucher(request, voucher_id):
     if request.method == 'POST':
