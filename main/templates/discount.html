@@ -118,18 +118,16 @@
     <!-- Success Modal -->
     <div id="successModal" class="modal hidden fixed top-0 left-0 w-full h-full bg-gray-800 bg-opacity-50 flex items-center justify-center">
         <div class="modal-content bg-white rounded-lg flex flex-col items-center justify-center" style="width: 300px; height: 300px;">
-            <!-- Content Container -->
             <div class="text-container text-center px-4 py-4">
                 <h2 class="text-green-500 text-lg font-bold mb-4">Purchase Successful</h2>
                 <p class="text-sm">
-                    Congrats!! You have successfully bought a voucher with the code 
-                    <span id="voucherCode" class="font-bold">XXX</span>. 
+                    Congrats!! You have successfully bought a voucher with the code with
+                    <span id="voucher_Code" class="font-bold">ABC123</span>
                     This voucher can be used until 
                     <span id="voucherExpiry" class="font-bold">XX/XX/XXXX</span> 
                     with <span id="voucherQuota" class="font-bold">X</span> number of usage quota.
                 </p>
             </div>
-            <!-- Button -->
             <button id="closeSuccess" class="bg-green-500 text-white px-4 py-2 rounded mt-6">Close</button>
         </div>
     </div>
@@ -156,13 +154,12 @@
         // Set the hidden fields with the voucher details
         document.getElementById('voucherId').value = voucherId;
         document.getElementById('voucherPrice').value = voucherPrice;
-        document.getElementById('voucherCode').value = voucherCode;
+        document.getElementById('voucher_Code').value = voucherCode;
         document.getElementById('voucherValidityDays').value = validityDays;
         document.getElementById('voucherUserQuota').value = userQuota;
 
         // Show the payment modal
         document.getElementById('paymentModal').classList.remove('hidden');
-
     }
     
     // Close modals
@@ -174,7 +171,7 @@
     document.getElementById('confirmPayment').addEventListener('click', function () {
         const voucherId = document.getElementById('voucherId').value;
         const voucherPrice = parseFloat(document.getElementById('voucherPrice').value);
-        const voucherCode = document.getElementById('voucherCode').value;
+        const voucherCode = document.getElementById('voucher_Code').value;
         const validityDays = parseInt(document.getElementById('voucherValidityDays').value);
         const userQuota = document.getElementById('voucherUserQuota').value;
         const paymentMethod = document.getElementById('paymentMethod').value;
@@ -234,19 +231,14 @@
         const formattedExpiry = `${expiryDate.getMonth() + 1}/${expiryDate.getDate()}/${expiryDate.getFullYear()}`;
 
         // Ensure the element exists and update content
-        const voucherCodeElement = document.getElementById('voucherCode');
-        if (voucherCodeElement) {
-            voucherCodeElement.textContent = voucherCode;
-            console.log("Voucher Code set in modal: ", voucherCodeElement.textContent);  // Log the updated value
-        } else {
-            console.log("Voucher Code element not found.");
-        }
 
+        document.getElementById('voucher_Code').textContent = voucherCode;
         document.getElementById('voucherExpiry').textContent = formattedExpiry;
         document.getElementById('voucherQuota').textContent = userQuota;
 
         // Show the success modal
         document.getElementById('successModal').classList.remove('hidden');
+        console.log(document.getElementById('voucherCode').textContent);
     }
 
     document.getElementById('closeSuccess').addEventListener('click', function () {
