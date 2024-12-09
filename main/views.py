@@ -22,6 +22,7 @@ import psycopg2
 from django.http import JsonResponse
 from django.conf import settings
 import json
+import datetime
 
 
 def authenticate(request):
@@ -449,7 +450,7 @@ def validate_discount(request):
             ) as conn:
                 with conn.cursor() as cursor:
                     # Check if the code exists in the main_promo table
-                    cursor.execute("SELECT discount_amount FROM main_promo WHERE code = %s", (discount_code,))
+                    cursor.execute("SELECT discount_amount, offer_end_date FROM main_promo WHERE code = %s", (discount_code,))
                     promo = cursor.fetchone()
 
                     # Check if the code exists in the main_voucher table
@@ -457,30 +458,33 @@ def validate_discount(request):
                     voucher = cursor.fetchone()
 
                     if promo:
+                        offer_end_date = promo[1]
+
+                        if offer_end_date < datetime.date.today():
+                            return JsonResponse({
+                                'valid': False,
+                                'message': 'This voucher has expired.'
+                            })
+
                         # Valid promo code
                         return JsonResponse({
                             'valid': True,
                             'discount_amount': promo[0],
                             'type': 'promo',  # Indicate it's a promo
                         })
+                    
                     elif voucher:
                         # Valid voucher code, now check if the user has purchased this voucher
                         voucher_id = voucher[0]
                         cursor.execute("""
-                            SELECT user_quota, validity_date FROM voucher_purchases
+                            SELECT user_quota FROM voucher_purchases
                             WHERE user_id = %s AND voucher_id = %s
                         """, (user_id, voucher_id))
 
                         result = cursor.fetchone()
 
                         if result:
-                            user_quota, validity_date = result
-                            # Check if the voucher has expired
-                            if validity_date < datetime.date.today():
-                                return JsonResponse({
-                                    'valid': False,
-                                    'message': 'This voucher has expired.'
-                                })
+                            user_quota = result
 
                             if user_quota > 0:
                                 # Decrease the user's quota by 1

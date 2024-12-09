@@ -618,9 +618,10 @@ def cancel_order(request):
                 with conn.cursor() as cursor:
                     # Delete the session from the booked_sessions table
                     cursor.execute("""
-                        DELETE FROM public.booked_sessions 
+                        UPDATE public.booked_sessions
+                        SET status = %s
                         WHERE id = %s AND user_id = %s
-                    """, (id, user[0]))  # Use request.user.id to get the user ID
+                    """, ('Canceled', id, user[0]))
 
                     conn.commit()
 
