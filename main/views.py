@@ -754,44 +754,64 @@ def worker_profile(request, worker_id):
         print(f"Error fetching worker details: {e}")
         messages.error(request, "An error occurred while fetching worker details.")
     
+import psycopg2
+from django.conf import settings
+from django.shortcuts import render
+from psycopg2.extras import DictCursor
+
 def mypay(request):
+    user, is_worker = authenticate(request)  # Check authentication
     # Database connection details
-    conn = psycopg2.connect(
-        dbname="your_database_name",
-        user="postgres",
-        password="your_password",
-        host="localhost",
-        port="5432"
-    )
-    cursor = conn.cursor()
+    try:
+        with psycopg2.connect(
+            dbname=settings.DATABASES['default']['NAME'],
+            user=settings.DATABASES['default']['USER'],
+            password=settings.DATABASES['default']['PASSWORD'],
+            host=settings.DATABASES['default']['HOST'],
+            port=settings.DATABASES['default']['PORT']
+        ) as conn:
+            # Use DictCursor for easier access to columns by name
+            with conn.cursor(cursor_factory=DictCursor) as cursor:
+                # Get user details (replace '1' with a dynamic user ID if needed)
+                user_query = "SELECT phone_number, mypay_balance FROM users WHERE id = %s;"
+                user_id = user[0] # Replace with dynamic user ID logic if required
+                cursor.execute(user_query, (user_id,))
+                user = cursor.fetchone()
+                if not user:
+                    return render(request, 'mypay.html', {'error': 'User not found'})
 
-    # Get user details (replace '1' with a dynamic user ID)
-    user_query = "SELECT phone_number, mypay_balance FROM users WHERE id = %s;"
-    cursor.execute(user_query, (1,))
-    user = cursor.fetchone()  # Example: (1234567890, 1000)
+                # Fetch transaction history for the user
+                transaction_query = """
+                    SELECT amount, date, category 
+                    FROM transactions 
+                    WHERE user_id = %s 
+                    ORDER BY date DESC;
+                """
+                cursor.execute(transaction_query, (user_id,))
+                transactions = cursor.fetchall()
 
-    # Fetch transaction history for the user
-    transaction_query = """
-        SELECT amount, date, category FROM transactions WHERE user_id = %s ORDER BY date DESC;
-    """
-    cursor.execute(transaction_query, (1,))
-    transactions = cursor.fetchall()  # Example: [(100, '2024-11-18', 'TopUp')]
+                # Prepare context
+                context = {
+                    'user': {
+                        'phone_number': user['phone_number'],
+                        'mypay_balance': user['mypay_balance'],
+                    },
+                    'mypay_balance': user['mypay_balance'],
+                    'transactions': [
+                        {
+                            'amount': t['amount'],
+                            'date': t['date'],
+                            'category': t['category']
+                        } for t in transactions
+                    ],
+                }
 
-    # Close the connection
-    conn.close()
+                return render(request, 'mypay.html', context)
+    except psycopg2.Error as e:
+        # Log the error and return an error page
+        print(f"Database error: {e}")
+        return render(request, 'mypay.html', {'error': 'Database connection error'})
 
-    # Prepare context
-    context = {
-        'user': {
-            'phone_number': user[0],
-            'mypay_balance': user[1],
-        },
-        'mypay_balance': user[1],
-        'transactions': [
-            {'amount': t[0], 'date': t[1], 'category': t[2]} for t in transactions
-        ],
-    }
 
-    return render(request, 'mypay.html', context)
 
 
