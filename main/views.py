@@ -777,7 +777,12 @@ from django.shortcuts import render
 from psycopg2.extras import DictCursor
 
 def mypay(request):
-    user, is_worker = authenticate(request)  # Check authentication
+    user_phone = request.session.get('user_phone')
+    is_worker = request.session.get('is_worker', False)
+    if not user_phone:
+        messages.error(request, "Please log in first")
+        return redirect('login')
+
     # Database connection details
     try:
         with psycopg2.connect(
@@ -787,38 +792,40 @@ def mypay(request):
             host=settings.DATABASES['default']['HOST'],
             port=settings.DATABASES['default']['PORT']
         ) as conn:
-            # Use DictCursor for easier access to columns by name
-            with conn.cursor(cursor_factory=DictCursor) as cursor:
-                # Get user details (replace '1' with a dynamic user ID if needed)
-                user_query = "SELECT phone_number, mypay_balance FROM users WHERE id = %s;"
-                user_id = user[0] # Replace with dynamic user ID logic if required
-                cursor.execute(user_query, (user_id,))
+            with conn.cursor() as cursor:
+                user_query = """
+                    SELECT phone_number, mypay_balance, id
+                    FROM main_user
+                    WHERE phone_number = %s;
+                """
+                cursor.execute(user_query, (user_phone,))
                 user = cursor.fetchone()
                 if not user:
                     return render(request, 'mypay.html', {'error': 'User not found'})
 
                 # Fetch transaction history for the user
                 transaction_query = """
-                    SELECT amount, date, category 
-                    FROM transactions 
-                    WHERE user_id = %s 
+                    SELECT mt.amount, mt.date, mt.category_id, cat.name
+                    FROM main_transaction AS mt, services_servicecategory AS cat
+                    WHERE
+                        mt.category_id = cat.id
+                        AND mt.id = %s 
                     ORDER BY date DESC;
                 """
-                cursor.execute(transaction_query, (user_id,))
+                cursor.execute(transaction_query, (user[2],))
                 transactions = cursor.fetchall()
 
                 # Prepare context
                 context = {
                     'user': {
-                        'phone_number': user['phone_number'],
-                        'mypay_balance': user['mypay_balance'],
+                        'phone_number': user[0],
+                        'mypay_balance': user[1],
                     },
-                    'mypay_balance': user['mypay_balance'],
                     'transactions': [
                         {
-                            'amount': t['amount'],
-                            'date': t['date'],
-                            'category': t['category']
+                            'amount': t[0],
+                            'date': t[1],
+                            'category': t[2]
                         } for t in transactions
                     ],
                 }
