@@ -85,6 +85,34 @@ $$;
 ALTER FUNCTION public.check_phone_number_exists() OWNER TO postgres;
 
 --
+-- Name: refund_mypay_balance(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.refund_mypay_balance() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+    -- Check if the status is being updated to 'Canceled'
+    IF NEW.status = 'Canceled' AND OLD.status = 'Searching for Nearby Workers' THEN
+        -- Update the user's MyPay balance by refunding the amount
+        UPDATE main_user
+        SET mypay_balance = mypay_balance + OLD.price
+        WHERE id = OLD.user_id;
+
+        -- Optionally, log the refund action (for auditing purposes)
+        INSERT INTO refund_logs (user_id, amount, refunded_at)
+        VALUES (OLD.user_id, OLD.price, NOW());
+    END IF;
+
+    -- Return the new row to proceed with the update
+    RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION public.refund_mypay_balance() OWNER TO postgres;
+
+--
 -- Name: update_user_level(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -1148,8 +1176,8 @@ COPY public.auth_user_user_permissions (id, user_id, permission_id) FROM stdin;
 
 COPY public.booked_sessions (id, session_id, session_name, price, subcategory_id, subcategory_name, worker_name, status, action, booked_at, user_id) FROM stdin;
 82	12	2 hours	580.00	3	Specialized Cleaning	Default Worker	Waiting for Payment	None	2024-12-08 19:19:49.291304	1
-83	1	1 hour	150.00	1	General Cleaning	Default Worker	Waiting for Payment	None	2024-12-08 22:34:49.358307	1
-84	8	3 hours	490.00	2	Deep Cleaning	Default Worker	Waiting for Payment	None	2024-12-08 22:55:22.048064	1
+83	1	1 hour	150.00	1	General Cleaning	Default Worker	Canceled	None	2024-12-08 22:34:49.358307	1
+84	8	3 hours	490.00	2	Deep Cleaning	Default Worker	Canceled	None	2024-12-08 22:55:22.048064	1
 73	29	2 hours	500.00	9	Aromatherapy	Default Worker	Waiting for Payment	None	2024-12-08 16:39:44.049438	1
 \.
 
@@ -2339,6 +2367,13 @@ CREATE TRIGGER trigger_check_bank_account_exists BEFORE INSERT ON public.main_wo
 --
 
 CREATE TRIGGER trigger_check_phone_number_exists BEFORE INSERT ON public.main_user FOR EACH ROW EXECUTE FUNCTION public.check_phone_number_exists();
+
+
+--
+-- Name: booked_sessions trigger_refund_on_cancel; Type: TRIGGER; Schema: public; Owner: postgres
+--
+
+CREATE TRIGGER trigger_refund_on_cancel AFTER UPDATE OF status ON public.booked_sessions FOR EACH ROW WHEN ((((old.status)::text = 'Searching for Nearby Workers'::text) AND ((new.status)::text = 'Canceled'::text))) EXECUTE FUNCTION public.refund_mypay_balance();
 
 
 --
