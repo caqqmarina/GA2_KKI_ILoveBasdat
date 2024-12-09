@@ -81,6 +81,10 @@
                                     data-id="{{ session.id }}" onclick="cancelOrder(this)">
                                 Cancel Order
                             </button>
+                            {% elif session.status == "Canceled" %}
+                            <button class="px-4 py-2 bg-gray-400 text-white font-bold rounded cursor-not-allowed" disabled>
+                                Cancelled
+                            </button>
                             {% elif session.status == "Order Completed" %}
                             {% if session.testimonial_created %}
                                 <p>Testimonial Submitted</p>
