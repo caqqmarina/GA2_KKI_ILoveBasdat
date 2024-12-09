@@ -909,6 +909,44 @@ ALTER TABLE public.services_workerserviceorder_workers ALTER COLUMN id ADD GENER
 
 
 --
+-- Name: voucher_purchases; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.voucher_purchases (
+    id integer NOT NULL,
+    user_id integer NOT NULL,
+    voucher_id integer NOT NULL,
+    purchase_date timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    user_quota integer,
+    validity_date date
+);
+
+
+ALTER TABLE public.voucher_purchases OWNER TO postgres;
+
+--
+-- Name: voucher_purchases_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.voucher_purchases_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.voucher_purchases_id_seq OWNER TO postgres;
+
+--
+-- Name: voucher_purchases_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.voucher_purchases_id_seq OWNED BY public.voucher_purchases.id;
+
+
+--
 -- Name: workers_category; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -948,6 +986,13 @@ ALTER SEQUENCE public.workers_category_id_seq OWNED BY public.workers_category.i
 --
 
 ALTER TABLE ONLY public.booked_sessions ALTER COLUMN id SET DEFAULT nextval('public.booked_sessions_id_seq'::regclass);
+
+
+--
+-- Name: voucher_purchases id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.voucher_purchases ALTER COLUMN id SET DEFAULT nextval('public.voucher_purchases_id_seq'::regclass);
 
 
 --
@@ -1102,8 +1147,9 @@ COPY public.auth_user_user_permissions (id, user_id, permission_id) FROM stdin;
 --
 
 COPY public.booked_sessions (id, session_id, session_name, price, subcategory_id, subcategory_name, worker_name, status, action, booked_at, user_id) FROM stdin;
-71	6	1 hour	200.00	2	Deep Cleaning	Default Worker	Waiting for Payment	None	2024-12-08 16:39:35.406566	1
-72	22	5 hours	950.00	5	Commercial Deep Cleaning	Default Worker	Waiting for Payment	None	2024-12-08 16:39:40.079161	1
+82	12	2 hours	580.00	3	Specialized Cleaning	Default Worker	Waiting for Payment	None	2024-12-08 19:19:49.291304	1
+83	1	1 hour	150.00	1	General Cleaning	Default Worker	Waiting for Payment	None	2024-12-08 22:34:49.358307	1
+84	8	3 hours	490.00	2	Deep Cleaning	Default Worker	Waiting for Payment	None	2024-12-08 22:55:22.048064	1
 73	29	2 hours	500.00	9	Aromatherapy	Default Worker	Waiting for Payment	None	2024-12-08 16:39:44.049438	1
 \.
 
@@ -1261,9 +1307,9 @@ COPY public.main_transfertransaction (transaction_ptr_id, recipient_id) FROM std
 
 COPY public.main_user (id, name, password, sex, phone_number, birth_date, address, last_login, date_joined, email, first_name, is_active, is_staff, is_superuser, last_name, username, mypay_balance, level) FROM stdin;
 2	min	pbkdf2_sha256$870000$OFPxDVoGsaAEquPjtlIVTG$eOlIL2BGduyH9OvIDugZH70UsOBBQFzaLxXpe0nSgX8=	female	12345678910	2005-05-06	jl.almadaniah 2no.12	\N	2024-11-17 21:53:34.510571+00			t	f	f		12345678910	0	Bronze
-1	chiara aqmarina	pbkdf2_sha256$870000$B6dHLViPOoK1MLwfC6SUL9$+HOw5944C6MzAsqhnJb+Gq0OWrru9E8xy+aBuLEQQ9E=	female	0818802316	2006-05-06	jl. almadaniah 2 no.12	\N	2024-11-16 05:58:45.956328+00			t	f	f		0818802316	0	Bronze
 3	christopher	pbkdf2_sha256$870000$n8fadZdGDGVx2ETToagN2U$EZNbd7lDmrK46bSKtpjNsbdk1kvxBLQVZ0PxOwOf2KM=	male	12345678	2005-05-06	jl. tanjung barat 3	\N	2024-11-18 12:01:15.701338+00			t	f	f		12345678	0	Bronze
 4	linda	pbkdf2_sha256$870000$lVkFZZaJdGocazVmknXEGm$f0uJpLU806C66e7UnPQoB59kIWpHq2tt4fDACabu2GU=	female	123456789	2004-05-06	jl. pondok china	\N	2024-11-18 12:03:06.257811+00			t	f	f		123456789	0	Bronze
+1	chiara aqmarina	pbkdf2_sha256$870000$B6dHLViPOoK1MLwfC6SUL9$+HOw5944C6MzAsqhnJb+Gq0OWrru9E8xy+aBuLEQQ9E=	female	0818802316	2006-05-06	jl. almadaniah 2 no.12	\N	2024-11-16 05:58:45.956328+00			t	f	f		0818802316	0.00	Bronze
 \.
 
 
@@ -1429,6 +1475,15 @@ COPY public.services_workerserviceorder_workers (id, workerserviceorder_id, work
 
 
 --
+-- Data for Name: voucher_purchases; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.voucher_purchases (id, user_id, voucher_id, purchase_date, user_quota, validity_date) FROM stdin;
+4	1	4	2024-12-08 23:04:09.256446	50	\N
+\.
+
+
+--
 -- Data for Name: workers_category; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -1486,7 +1541,7 @@ SELECT pg_catalog.setval('public.auth_user_user_permissions_id_seq', 1, false);
 -- Name: booked_sessions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.booked_sessions_id_seq', 73, true);
+SELECT pg_catalog.setval('public.booked_sessions_id_seq', 84, true);
 
 
 --
@@ -1613,6 +1668,13 @@ SELECT pg_catalog.setval('public.services_workerserviceorder_id_seq', 5, true);
 --
 
 SELECT pg_catalog.setval('public.services_workerserviceorder_workers_id_seq', 1, false);
+
+
+--
+-- Name: voucher_purchases_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.voucher_purchases_id_seq', 4, true);
 
 
 --
@@ -1972,6 +2034,22 @@ ALTER TABLE ONLY public.services_workerserviceorder
 
 ALTER TABLE ONLY public.services_workerserviceorder_workers
     ADD CONSTRAINT services_workerserviceorder_workers_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: voucher_purchases voucher_purchases_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.voucher_purchases
+    ADD CONSTRAINT voucher_purchases_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: voucher_purchases voucher_purchases_user_id_voucher_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.voucher_purchases
+    ADD CONSTRAINT voucher_purchases_user_id_voucher_id_key UNIQUE (user_id, voucher_id);
 
 
 --
@@ -2516,6 +2594,22 @@ ALTER TABLE ONLY public.services_workerserviceorder_workers
 
 ALTER TABLE ONLY public.services_workerserviceorder_workers
     ADD CONSTRAINT services_workerservi_workerserviceorder_i_ff021707_fk_services_ FOREIGN KEY (workerserviceorder_id) REFERENCES public.services_workerserviceorder(id) DEFERRABLE INITIALLY DEFERRED;
+
+
+--
+-- Name: voucher_purchases voucher_purchases_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.voucher_purchases
+    ADD CONSTRAINT voucher_purchases_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.main_user(id);
+
+
+--
+-- Name: voucher_purchases voucher_purchases_voucher_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.voucher_purchases
+    ADD CONSTRAINT voucher_purchases_voucher_id_fkey FOREIGN KEY (voucher_id) REFERENCES public.main_voucher(id);
 
 
 --
