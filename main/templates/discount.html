@@ -204,7 +204,7 @@
                             openSuccessModal(voucherCode, validityDays, userQuota);
                         } else {
                             // Handle failure
-                            alert('Purchase failed.');
+                            alert(`${result.message}`);
                         }
                     });
                 } else {

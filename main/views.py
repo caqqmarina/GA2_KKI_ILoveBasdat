@@ -544,6 +544,18 @@ def buy_voucher(request, voucher_id):
                 port=settings.DATABASES['default']['PORT']
             ) as conn:
                 with conn.cursor() as cursor:
+                    # Check if the user has already purchased the voucher
+                    cursor.execute("""
+                        SELECT 1 FROM voucher_purchases
+                        WHERE user_id = %s AND voucher_id = %s
+                    """, (user[0], voucher_id))
+                    if cursor.fetchone():
+                        # Voucher already purchased
+                        return JsonResponse({
+                            'success': False,
+                            'message': 'Voucher is already purchased.'
+                        }, status=400)
+
                     # Fetch voucher details
                     cursor.execute("SELECT id, code, price, user_quota FROM main_voucher WHERE id = %s", (voucher_id,))
                     voucher = cursor.fetchone()
@@ -578,6 +590,7 @@ def buy_voucher(request, voucher_id):
             return JsonResponse({'success': False, 'message': f'Error: {str(e)}'}, status=500)
 
     return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=400)
+
 
 import logging
 
