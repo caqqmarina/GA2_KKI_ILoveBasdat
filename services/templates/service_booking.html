@@ -76,7 +76,7 @@
                         <td class="px-4 py-2">{{ session.worker_name }}</td>
                         <td class="px-4 py-2">{{ session.status }}</td>
                         <td class="px-4 py-2">
-                            {% if session.status == "Waiting for Payment" or session.status == "Searching for Nearest Workers" %}
+                            {% if session.status == "Waiting for Payment" or session.status == "Searching for Nearby Workers" %}
                             <button class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600" 
                                     data-id="{{ session.id }}" onclick="cancelOrder(this)">
                                 Cancel Order
