@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Job Status</title>
+</head>
+<body>
+    <h1>Manage Service Orders</h1>
+
+    <!-- Status Filter -->
+    <form method="GET" action="/service-job-status">
+        <label for="status">Filter by Status:</label>
+        <select name="status" id="status" onchange="this.form.submit()">
+            <option value="">-- Select Status --</option>
+            <option value="Waiting for Worker to Depart">Waiting for Worker to Depart</option>
+            <option value="Worker Arrived at Location">Worker Arrived at Location</option>
+            <option value="Service in Progress">Service in Progress</option>
+            <option value="Order Completed">Order Completed</option>
+        </select>
+    </form>
+
+    <!-- Service Orders -->
+    <table border="1">
+        <tr>
+            <th>Order Name</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+        {% for order in orders %}
+        <tr>
+            <td>{{ order.name }}</td>
+            <td>{{ order.status }}</td>
+            <td>
+                {% if order.status == "Waiting for Worker to Depart" %}
+                <form method="POST" action="/update-status">
+                    <input type="hidden" name="order_id" value="{{ order.id }}">
+                    <input type="hidden" name="new_status" value="Worker Arrived at Location">
+                    <button type="submit">Arrived at Location</button>
+                </form>
+                {% elif order.status == "Worker Arrived at Location" %}
+                <form method="POST" action="/update-status">
+                    <input type="hidden" name="order_id" value="{{ order.id }}">
+                    <input type="hidden" name="new_status" value="Service in Progress">
+                    <button type="submit">Providing Service</button>
+                </form>
+                {% elif order.status == "Service in Progress" %}
+                <form method="POST" action="/update-status">
+                    <input type="hidden" name="order_id" value="{{ order.id }}">
+                    <input type="hidden" name="new_status" value="Order Completed">
+                    <button type="submit">Service Completed</button>
+                </form>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
