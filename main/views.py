@@ -185,6 +185,8 @@ def landing_page(request):
     }
     return render(request, 'landing.html', context)
 
+# main/views.py
+
 def login_user(request):
     if request.method == 'POST':
         phone = request.POST['phone']
@@ -206,7 +208,9 @@ def login_user(request):
                 request.session['user_phone'] = phone
                 request.session['is_authenticated'] = True
                 cursor.execute("SELECT EXISTS(SELECT 1 FROM main_worker WHERE user_ptr_id = %s)", (user[0],))
-                request.session['is_worker'] = cursor.fetchone()[0]
+                is_worker = cursor.fetchone()[0]
+                request.session['is_worker'] = is_worker
+                print(f"User {phone} logged in as {'worker' if is_worker else 'user'}")
                 return redirect('homepage')
             else:
                 messages.error(request, 'Invalid phone number or password.')
@@ -632,6 +636,8 @@ def some_view(request):
     }
     return render(request, 'template_name.html', context)
 
+# main/views.py
+
 def profile_view(request, worker_id=None):
     user_phone = request.session.get('user_phone') if worker_id is None else None
     is_worker = request.session.get('is_worker', False) if worker_id is None else True
@@ -667,7 +673,7 @@ def profile_view(request, worker_id=None):
                         'birth_date': user_data[4],
                         'address': user_data[5],
                         'mypay_balance': user_data[6],
-                        'level': user_data[7]  # Include level in context
+                        'level': user_data[7]
                     },
                     'user_name': user_data[1],
                     'is_worker': is_worker,
@@ -713,11 +719,25 @@ def profile_view(request, worker_id=None):
                     """, (name, hashed_password, sex, phone_number, birth_date, address, user_data[0]))
                     
                     if is_worker:
+                        bank_name = request.POST.get('bank_name')
+                        account_number = request.POST.get('account_number')
+                        npwp = request.POST.get('npwp')
+                        
+                        # Debugging print statements
+                        print(f"bank_name: {bank_name}")
+                        print(f"account_number: {account_number}")
+                        print(f"npwp: {npwp}")
+                        print(f"image_url: {image_url}")
+                        
+                        if not bank_name or not account_number or not npwp:
+                            messages.error(request, 'All worker fields are required.')
+                            return render(request, 'profile.html', context)
+                        
                         cursor.execute("""
                             UPDATE main_worker
-                            SET image_url = %s
+                            SET bank_name = %s, account_number = %s, npwp = %s, image_url = %s
                             WHERE user_ptr_id = %s
-                        """, (image_url, user_data[0]))
+                        """, (bank_name, account_number, npwp, image_url, user_data[0]))
                     
                     conn.commit()
                     messages.success(request, 'Profile updated successfully.')

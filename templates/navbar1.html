@@ -61,6 +61,7 @@
 </body>
 </html> -->
 
+<!-- templates/navbar1.html -->
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
@@ -90,10 +91,10 @@
                     <a href="{% url 'homepage' %}" class="text-gray-900 hover:text-blue-900 text-900 font-medium">Homepage</a>
                     <div class="relative">
                         <button onclick="toggleDropdown()" class="focus:outline-none">
-                            {% if user_sex == 'female' %}
-                            <img src="{% static 'images/profilewoman.png' %}" alt="Profile" class="profile-picture">
-                            {% else %}
+                            {% if user.sex == 'male' %}
                             <img src="{% static 'images/profileman.png' %}" alt="Profile" class="profile-picture">
+                            {% else %}
+                            <img src="{% static 'images/profilewoman.png' %}" alt="Profile" class="profile-picture">
                             {% endif %}
                         </button>
                         <div id="dropdownMenu" class="hidden absolute bg-white border rounded shadow-lg mt-2 w-48">
