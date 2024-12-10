@@ -555,6 +555,65 @@ def service_job(request):
             messages.error(request, "Invalid input. Please check the form.")
             return render(request, 'service_job_form.html', {'form': form})
 
+def service_job_status(request):
+    # Fetch orders for the worker (assuming worker_id = 1)
+    try:
+        with psycopg2.connect(
+            dbname=settings.DATABASES['default']['NAME'],
+            user=settings.DATABASES['default']['USER'],
+            password=settings.DATABASES['default']['PASSWORD'],
+            host=settings.DATABASES['default']['HOST'],
+            port=settings.DATABASES['default']['PORT']
+        ) as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM service_orders WHERE worker_id = %s", (1,))  # Assuming worker_id = 1
+                orders = cursor.fetchall()
+    except Exception as e:
+        print(f"Error fetching orders: {e}")
+        return redirect('homepage')
+
+    # Handle status updates
+    if request.method == "POST" and "order_id" in request.POST and "action" in request.POST:
+        order_id = request.POST.get("order_id")
+        action = request.POST.get("action")
+
+        try:
+            with psycopg2.connect(
+                dbname=settings.DATABASES['default']['NAME'],
+                user=settings.DATABASES['default']['USER'],
+                password=settings.DATABASES['default']['PASSWORD'],
+                host=settings.DATABASES['default']['HOST'],
+                port=settings.DATABASES['default']['PORT']
+            ) as conn:
+                with conn.cursor() as cursor:
+                    # Workflow of updating status
+                    if action == "arrive":
+                        cursor.execute("""
+                            UPDATE service_orders
+                            SET status = 'Worker Arrived at Location'
+                            WHERE id = %s AND status = 'Waiting for Worker to Depart'
+                        """, (order_id,))
+                    elif action == "start_service":
+                        cursor.execute("""
+                            UPDATE service_orders
+                            SET status = 'Service in Progress'
+                            WHERE id = %s AND status = 'Worker Arrived at Location'
+                        """, (order_id,))
+                    elif action == "complete":
+                        cursor.execute("""
+                            UPDATE service_orders
+                            SET status = 'Order Completed'
+                            WHERE id = %s AND status = 'Service in Progress'
+                        """, (order_id,))
+
+                    conn.commit()
+        except Exception as e:
+            print(f"Error updating service order status: {e}")
+
+    return render(request, "service_job_status.html", {
+        "orders": orders,
+    })
+
 def join_category(request, category_id, subcategory_id):
     user, is_worker = authenticate(request)
     if not user or not is_worker:
