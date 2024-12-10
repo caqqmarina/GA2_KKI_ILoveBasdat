@@ -677,6 +677,42 @@ CREATE TABLE public.main_worker (
 ALTER TABLE public.main_worker OWNER TO postgres;
 
 --
+-- Name: refund_logs; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.refund_logs (
+    id integer NOT NULL,
+    user_id integer NOT NULL,
+    amount numeric(10,2) NOT NULL,
+    refunded_at timestamp without time zone DEFAULT now()
+);
+
+
+ALTER TABLE public.refund_logs OWNER TO postgres;
+
+--
+-- Name: refund_logs_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.refund_logs_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.refund_logs_id_seq OWNER TO postgres;
+
+--
+-- Name: refund_logs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.refund_logs_id_seq OWNED BY public.refund_logs.id;
+
+
+--
 -- Name: services_booking; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -1017,6 +1053,13 @@ ALTER TABLE ONLY public.booked_sessions ALTER COLUMN id SET DEFAULT nextval('pub
 
 
 --
+-- Name: refund_logs id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.refund_logs ALTER COLUMN id SET DEFAULT nextval('public.refund_logs_id_seq'::regclass);
+
+
+--
 -- Name: voucher_purchases id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -1175,10 +1218,10 @@ COPY public.auth_user_user_permissions (id, user_id, permission_id) FROM stdin;
 --
 
 COPY public.booked_sessions (id, session_id, session_name, price, subcategory_id, subcategory_name, worker_name, status, action, booked_at, user_id) FROM stdin;
-82	12	2 hours	580.00	3	Specialized Cleaning	Default Worker	Waiting for Payment	None	2024-12-08 19:19:49.291304	1
-83	1	1 hour	150.00	1	General Cleaning	Default Worker	Canceled	None	2024-12-08 22:34:49.358307	1
-84	8	3 hours	490.00	2	Deep Cleaning	Default Worker	Canceled	None	2024-12-08 22:55:22.048064	1
-73	29	2 hours	500.00	9	Aromatherapy	Default Worker	Waiting for Payment	None	2024-12-08 16:39:44.049438	1
+82	12	2 hours	580.00	3	Specialized Cleaning		Waiting for Payment	None	2024-12-08 19:19:49.291304	1
+83	1	1 hour	150.00	1	General Cleaning		Canceled	None	2024-12-08 22:34:49.358307	1
+84	8	3 hours	490.00	2	Deep Cleaning		Canceled	None	2024-12-08 22:55:22.048064	1
+88	6	1 hour	200.00	2	Deep Cleaning		Waiting for Payment	None	2024-12-10 06:11:45.658271	1
 \.
 
 
@@ -1290,7 +1333,7 @@ g3me9tvbatr224fq05w3ib5dyfaml74b	eyJ1c2VyX3Bob25lIjoiMDgxODgwMjMxNiIsImlzX2F1dGh
 xchkpq2pwfa410oxrnczwumm6wz7gqwh	.eJw1y0sKgCAURuG9_OMm9s6tREjlBUXwhldpEO29CBqcyQfnQhFK5nAcCRqqbtquH8YJFbyYtWRHMft9zWShcyr0-ckpUPphYw5kjZCI5yjQM9T7D2-qxXI_nBggtA:1tD0TL:nOnhERB1S4rSKnXTGvJpCpqLVzc4NwUd1vHOunxK67k	2024-12-02 12:03:15.380844+00
 qevrieg7y0qso35vmve0auarfjzyui5j	.eJwdy0EKgzAQBdC7_LUL04KEXKWUEM1UgyVTZhJExLs3un3wDlQl8b-FM8Ght8ba_vE0Azok9aGWhXJJUygU4YpUun1jWUngPuGrTUbmlaJXUk2cFe4Fg3cHreM1Z5bdp_abnn-X4iae:1tHluY:YB6HvmHOzyfLK9hf25YtOQXSYmNdH3zersZoHoAdHTg	2024-12-15 15:31:02.79877+00
 seyx1qfsc1ehwc2zj44jk6hib69umjc0	eyJ1c2VyX3Bob25lIjoiMDgxODgwMjMxNiIsImlzX2F1dGhlbnRpY2F0ZWQiOnRydWUsImlzX3dvcmtlciI6ZmFsc2V9:1tKJsS:Vj-rUEiSv6lGrgYRbUSYh4IXmoodtquST9yto7jksIc	2024-12-22 16:11:24.25895+00
-f2gy3kqsz1g9zg3sc1kqw08zwxh83i1f	eyJ1c2VyX3Bob25lIjoiMDgxODgwMjMxNiIsImlzX2F1dGhlbnRpY2F0ZWQiOnRydWUsImlzX3dvcmtlciI6ZmFsc2V9:1tKKUX:64d62XM7tlI1IxQmqj4b_cJhJKPZ4rG2y2_WCxu1NLw	2024-12-22 16:50:45.771439+00
+zgoa85kih744lhdbisylj8fis0fhzvx9	eyJ1c2VyX3Bob25lIjoiMDgxODgwMjMxNiIsImlzX2F1dGhlbnRpY2F0ZWQiOnRydWUsImlzX3dvcmtlciI6ZmFsc2V9:1tKtMA:RAfvUz7zjT0nl_wmh3uj-VoQGMgzV9YaqTr7tbw9ZAQ	2024-12-24 06:04:26.296932+00
 \.
 
 
@@ -1337,7 +1380,7 @@ COPY public.main_user (id, name, password, sex, phone_number, birth_date, addres
 2	min	pbkdf2_sha256$870000$OFPxDVoGsaAEquPjtlIVTG$eOlIL2BGduyH9OvIDugZH70UsOBBQFzaLxXpe0nSgX8=	female	12345678910	2005-05-06	jl.almadaniah 2no.12	\N	2024-11-17 21:53:34.510571+00			t	f	f		12345678910	0	Bronze
 3	christopher	pbkdf2_sha256$870000$n8fadZdGDGVx2ETToagN2U$EZNbd7lDmrK46bSKtpjNsbdk1kvxBLQVZ0PxOwOf2KM=	male	12345678	2005-05-06	jl. tanjung barat 3	\N	2024-11-18 12:01:15.701338+00			t	f	f		12345678	0	Bronze
 4	linda	pbkdf2_sha256$870000$lVkFZZaJdGocazVmknXEGm$f0uJpLU806C66e7UnPQoB59kIWpHq2tt4fDACabu2GU=	female	123456789	2004-05-06	jl. pondok china	\N	2024-11-18 12:03:06.257811+00			t	f	f		123456789	0	Bronze
-1	chiara aqmarina	pbkdf2_sha256$870000$B6dHLViPOoK1MLwfC6SUL9$+HOw5944C6MzAsqhnJb+Gq0OWrru9E8xy+aBuLEQQ9E=	female	0818802316	2006-05-06	jl. almadaniah 2 no.12	\N	2024-11-16 05:58:45.956328+00			t	f	f		0818802316	0.00	Bronze
+1	chiara aqmarina	pbkdf2_sha256$870000$B6dHLViPOoK1MLwfC6SUL9$+HOw5944C6MzAsqhnJb+Gq0OWrru9E8xy+aBuLEQQ9E=	female	0818802316	2006-05-06	jl. almadaniah 2 no.12	\N	2024-11-16 05:58:45.956328+00			t	f	f		0818802316	477.00	Bronze
 \.
 
 
@@ -1377,6 +1420,15 @@ COPY public.main_worker (user_ptr_id, bank_name, account_number, npwp, image_url
 2	Virtual Account BCA	123456789	13456789	https://i.redd.it/i-got-bored-so-i-decided-to-draw-a-random-image-on-the-v0-4ig97vv85vjb1.png?width=1280&format=png&auto=webp&s=7177756d1f393b6e093596d06e1ba539f723264b
 3	Virtual Account BNI	123456789	123456789	https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/J_Paul_Getty_crop.jpg/640px-J_Paul_Getty_crop.jpg
 4	Virtual Account BCA	123456789	1234567	https://awsimages.detik.net.id/community/media/visual/2024/01/24/idol-kpop-lolos-getty-images-kulit-wajah-mulus-di-kehidupan-nyata.jpeg?w=600&q=90
+\.
+
+
+--
+-- Data for Name: refund_logs; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.refund_logs (id, user_id, amount, refunded_at) FROM stdin;
+1	1	490.00	2024-12-09 04:20:21.582709
 \.
 
 
@@ -1508,6 +1560,8 @@ COPY public.services_workerserviceorder_workers (id, workerserviceorder_id, work
 
 COPY public.voucher_purchases (id, user_id, voucher_id, purchase_date, user_quota, validity_date) FROM stdin;
 4	1	4	2024-12-08 23:04:09.256446	50	\N
+5	1	2	2024-12-09 04:32:16.948441	200	\N
+8	1	1	2024-12-09 04:36:19.030862	100	\N
 \.
 
 
@@ -1569,7 +1623,7 @@ SELECT pg_catalog.setval('public.auth_user_user_permissions_id_seq', 1, false);
 -- Name: booked_sessions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.booked_sessions_id_seq', 84, true);
+SELECT pg_catalog.setval('public.booked_sessions_id_seq', 88, true);
 
 
 --
@@ -1633,6 +1687,13 @@ SELECT pg_catalog.setval('public.main_user_user_permissions_id_seq', 1, false);
 --
 
 SELECT pg_catalog.setval('public.main_voucher_id_seq', 1, false);
+
+
+--
+-- Name: refund_logs_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.refund_logs_id_seq', 1, true);
 
 
 --
@@ -1702,7 +1763,7 @@ SELECT pg_catalog.setval('public.services_workerserviceorder_workers_id_seq', 1,
 -- Name: voucher_purchases_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.voucher_purchases_id_seq', 4, true);
+SELECT pg_catalog.setval('public.voucher_purchases_id_seq', 8, true);
 
 
 --
@@ -1982,6 +2043,14 @@ ALTER TABLE ONLY public.main_worker
 
 ALTER TABLE ONLY public.main_worker
     ADD CONSTRAINT main_worker_pkey PRIMARY KEY (user_ptr_id);
+
+
+--
+-- Name: refund_logs refund_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.refund_logs
+    ADD CONSTRAINT refund_logs_pkey PRIMARY KEY (id);
 
 
 --
