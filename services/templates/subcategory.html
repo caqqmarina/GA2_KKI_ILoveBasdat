@@ -140,6 +140,7 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
+        // Variables related to booking modal
         const bookingModal = document.getElementById("bookingModal");
         const bookServiceButtons = document.querySelectorAll(".book-service-btn");
         const closeModalButton = document.getElementById("closeModal");
@@ -154,6 +155,17 @@
         let originalPrice = 0;
         let finalPrice = 0;
         let appliedDiscounts = []; // Array to store multiple applied discount amounts
+
+        // Helper function to get the current date in desired format
+        function getCurrentDate() {
+            const now = new Date();
+            const day = String(now.getDate()).padStart(2, "0");
+            const month = String(now.getMonth() + 1).padStart(2, "0");
+            const year = now.getFullYear();
+            const hours = String(now.getHours()).padStart(2, "0");
+            const minutes = String(now.getMinutes()).padStart(2, "0");
+            return `${year}-${month}-${day} ${hours}:${minutes}`;
+        }
 
         // Show modal when "Book Service" button is clicked
         bookServiceButtons.forEach(button => {
@@ -228,17 +240,50 @@
             finalPriceInput.value = finalPrice; // Set finalPrice in hidden input
         });
 
-        // Helper function to get the current date in desired format
-        function getCurrentDate() {
-            const now = new Date();
-            const day = String(now.getDate()).padStart(2, "0");
-            const month = String(now.getMonth() + 1).padStart(2, "0");
-            const year = now.getFullYear();
-            const hours = String(now.getHours()).padStart(2, "0");
-            const minutes = String(now.getMinutes()).padStart(2, "0");
-            return `${year}-${month}-${day} ${hours}:${minutes}`;
+        // Variables related to join category button
+        const joinButton = document.getElementById('joinButton');
+
+        if (joinButton) {
+            joinButton.addEventListener('click', () => {
+                const subcategoryId = joinButton.dataset.subcategoryId;
+                const categoryId = joinButton.dataset.categoryId;
+
+                fetch(`/services/${categoryId}/${subcategoryId}/join/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}', // Ensure CSRF token is included
+                    },
+                    body: JSON.stringify({})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message); // Display a message to the user
+                    if (data.success) {
+                        joinButton.textContent = "Joined"; // Update button text
+                        joinButton.disabled = true; // Disable the button
+                        location.reload();
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            });
+        }
+
+        // Utility function to get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
         }
     });
-
 </script>
 {% endblock content %}
