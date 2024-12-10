@@ -96,3 +96,20 @@ Cath
 - logout
 - testimonials
 - service job and service job status
+
+
+Docker configuration:
+
+since we're using docker to manage postgres, its optimal to disable local postgres services
+
+``Exporting:``
+
+docker exec -i ga2_kki_ilovebasdat-postgres-1 pg_dump -U postgres -C -c postgres > db_dump.sql
+
+``Copy the dump file into the container:``
+
+docker cp db_dump.sql ga2_kki_ilovebasdat-postgres-1:/db_dump.sql
+
+``Run the psql command to import the dump file:``
+
+docker exec -i ga2_kki_ilovebasdat-postgres-1 psql -U postgres -d postgres -f /db_dump.sql

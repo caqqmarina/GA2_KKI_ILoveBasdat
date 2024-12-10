@@ -81,10 +81,7 @@ WSGI_APPLICATION = 'GA2_KKI_IloveBasdat.wsgi.application'
 import dj_database_url
 
 DATABASES = {
-    'default': dj_database_url.config(
-        default=os.getenv('DATABASE_URL', 'postgres://postgres:postgres@localhost:5432/postgres'), 
-        engine='django.db.backends.postgresql',
-    )
+    'default': dj_database_url.config(default="postgresql://postgres.caqaszbvggxckoazcpvc:coklat007@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres")
 }
 
 # Password validation
