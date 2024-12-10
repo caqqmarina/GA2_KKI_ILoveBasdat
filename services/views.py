@@ -286,7 +286,7 @@ def service_bookings(request):
                             final_price,  # price
                             booked_session[3],  # subcategory_id
                             booked_session[4],  # subcategory_name
-                            'Default Worker',  # worker_name (replace with actual worker name if available)
+                            '',  # worker_name (replace with actual worker name if available)
                             'None',            # action (can be updated later)
                             user[0]            # user_id
                         ))
